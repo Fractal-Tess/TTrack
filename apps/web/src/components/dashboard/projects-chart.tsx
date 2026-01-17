@@ -22,10 +22,10 @@ const chartConfig = {
   },
 } as const;
 
-interface ProjectsChartProps {
+type ProjectsChartProps = {
   projects: TokenBreakdown[] | null;
   isLoading?: boolean;
-}
+};
 
 export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
   if (isLoading) {

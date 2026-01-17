@@ -4,21 +4,21 @@ import useSWR from "swr";
 
 export type MetricsRange = "1h" | "24h" | "7d" | "30d" | "90d";
 
-export interface TokenSummary {
+export type TokenSummary = {
   total: number;
   input: number;
   output: number;
   reasoning: number;
   cacheRead: number;
   cacheWrite: number;
-}
+};
 
-export interface TokenBreakdown {
+export type TokenBreakdown = {
   name: string;
   value: number;
-}
+};
 
-export interface TokenMetrics {
+export type TokenMetrics = {
   summary: TokenSummary;
   agents: TokenBreakdown[];
   models: TokenBreakdown[];
@@ -32,7 +32,7 @@ export interface TokenMetrics {
     cache_read_tokens?: number;
     cache_write_tokens?: number;
   }>;
-}
+};
 
 const fetcher = async (url: string): Promise<TokenMetrics> => {
   const response = await fetch(url);

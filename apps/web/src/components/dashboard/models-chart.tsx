@@ -22,10 +22,10 @@ const chartConfig = {
   },
 } as const;
 
-interface ModelsChartProps {
+type ModelsChartProps = {
   models: TokenBreakdown[] | null;
   isLoading?: boolean;
-}
+};
 
 export function ModelsChart({ models, isLoading }: ModelsChartProps) {
   if (isLoading) {

@@ -30,11 +30,11 @@ const chartConfig = {
   },
 } as const;
 
-interface TimelineChartProps {
+type TimelineChartProps = {
   metrics: TokenMetrics | null;
   isLoading?: boolean;
   rangeLabel?: string;
-}
+};
 
 export function TimelineChart({
   metrics,

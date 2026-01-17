@@ -19,7 +19,6 @@ TTrack/
 ├── packages/
 │   ├── tracker/           # Token tracking client library
 │   ├── ui/               # Shared UI components (shadcn/ui patterns)
-│   ├── eslint-config/     # Shared ESLint configs
 │   ├── typescript-config/ # Shared TS configs
 │   ├── pkg/
 │   │   └── home-ui/     # UI component library (50+ components)
@@ -69,7 +68,7 @@ Top symbols (key exports):
 ### TypeScript
 
 - Strict mode enabled
-- No `as any`, `@ts-ignore` (blocked by eslint)
+- No `as any`, `@ts-ignore` (not allowed)
 - Use `neverthrow` for Result/ResultAsync error handling (tracker package)
 
 ### Styling
@@ -133,7 +132,6 @@ export const env = createEnv({...})
 ```bash
 bun run dev          # Start dev servers (Turborepo)
 bun run build        # Build all packages
-bun run lint         # Lint all packages
 bun run test         # Run tests (shadcn-original)
 bun run format       # Format with Prettier
 ```

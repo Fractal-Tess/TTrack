@@ -3,12 +3,12 @@
 import { Card, CardContent } from "@workspace/ui/components/card";
 import type { TokenSummary } from "@/hooks/use-token-metrics";
 
-interface StatCardProps {
+type StatCardProps = {
   title: string;
   value: number;
   change?: number;
   isPositive?: boolean;
-}
+};
 
 function StatCard({ title, value, change, isPositive }: StatCardProps) {
   const formatNumber = (num: number) => {
@@ -41,10 +41,10 @@ function StatCard({ title, value, change, isPositive }: StatCardProps) {
   );
 }
 
-interface StatCardsProps {
+type StatCardsProps = {
   summary: TokenSummary | null;
   isLoading?: boolean;
-}
+};
 
 export function StatCards({ summary, isLoading }: StatCardsProps) {
   if (isLoading) {

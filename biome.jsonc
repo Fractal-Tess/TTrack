@@ -2,64 +2,18 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core", "ultracite/biome/next"],
   "files": {
-    "ignoreUnknown": true,
-    "includes": ["!!**/.opencode", "!!**/shadcn-original", "!!**/.cursor"]
+    "ignoreUnknown": true
   },
-  "overrides": [
-    {
-      "includes": [
-        "**/eslint.config.js",
-        "**/postcss.config.mjs",
-        "packages/eslint-config/**"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUndeclaredVariables": "off"
-          },
-          "performance": {
-            "noBarrelFile": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": [
-        "packages/tracker/src/index.ts",
-        "packages/ui/src/lib/index.ts"
-      ],
-      "linter": {
-        "rules": {
-          "performance": {
-            "noBarrelFile": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["packages/ui/src/**"],
-      "linter": {
-        "rules": {
-          "performance": {
-            "noNamespaceImport": "warn",
-            "noBarrelFile": "warn"
-          },
-          "a11y": {
-            "useSemanticElements": "warn",
-            "useFocusableInteractive": "warn",
-            "useAriaPropsForRole": "warn",
-            "useKeyWithClickEvents": "warn",
-            "noNoninteractiveElementInteractions": "warn"
-          },
-          "security": {
-            "noDangerouslySetInnerHtml": "warn"
-          },
-          "correctness": {
-            "noInvalidPositionAtImportRule": "warn",
-            "useJsxKeyInIterable": "warn"
+  "linter": {
+    "rules": {
+      "style": {
+        "useConsistentTypeDefinitions": {
+          "level": "info",
+          "options": {
+            "style": "type"
           }
         }
       }
     }
-  ]
+  }
 }

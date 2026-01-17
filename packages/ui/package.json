@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "scripts": {
-    "lint": "eslint . --max-warnings 0"
-  },
   "dependencies": {
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.4",
@@ -61,9 +58,7 @@
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
-    "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9.32.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2"
   },

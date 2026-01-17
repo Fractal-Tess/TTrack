@@ -12,10 +12,10 @@ import {
 } from "@workspace/ui/components/card";
 import type { TokenMetrics } from "@/hooks/use-token-metrics";
 
-interface RecentActivityProps {
+type RecentActivityProps = {
   metrics: TokenMetrics | null;
   isLoading?: boolean;
-}
+};
 
 export function RecentActivity({ metrics, isLoading }: RecentActivityProps) {
   if (isLoading) {

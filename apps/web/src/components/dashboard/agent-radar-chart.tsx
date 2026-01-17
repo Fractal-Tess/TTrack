@@ -22,10 +22,10 @@ const chartConfig = {
   },
 } as const;
 
-interface RadarChartProps {
+type RadarChartProps = {
   agents: TokenBreakdown[] | null;
   isLoading?: boolean;
-}
+};
 
 export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
   if (isLoading) {

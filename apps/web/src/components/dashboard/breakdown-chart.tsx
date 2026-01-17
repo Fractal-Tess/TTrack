@@ -41,10 +41,10 @@ const cacheConfig = {
   },
 } as const;
 
-interface BreakdownChartProps {
+type BreakdownChartProps = {
   summary: TokenSummary | null;
   isLoading?: boolean;
-}
+};
 
 export function BreakdownChart({ summary, isLoading }: BreakdownChartProps) {
   if (isLoading) {

@@ -1,4 +1,4 @@
-export interface TrackData {
+export type TrackData = {
   projectName: string;
   agentName: string;
   model: string;
@@ -7,4 +7,4 @@ export interface TrackData {
   reasoningTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
-}
+};

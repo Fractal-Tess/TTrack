@@ -5,13 +5,11 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
-    "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "lefthook": "^2.0.15",
     "prettier": "^3.7.4",
