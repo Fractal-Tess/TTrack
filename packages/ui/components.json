@@ -1,20 +1,26 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
+  "style": "radix-lyra",
   "rsc": true,
   "tsx": true,
   "tailwind": {
     "config": "",
     "css": "src/styles/globals.css",
     "baseColor": "neutral",
-    "cssVariables": true
+    "cssVariables": true,
+    "prefix": ""
   },
-  "iconLibrary": "lucide",
+  "iconLibrary": "hugeicons",
   "aliases": {
     "components": "@workspace/ui/components",
     "utils": "@workspace/ui/lib/utils",
-    "hooks": "@workspace/ui/hooks",
+    "ui": "@workspace/ui/components",
     "lib": "@workspace/ui/lib",
-    "ui": "@workspace/ui/components"
+    "hooks": "@workspace/ui/hooks"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
   }
 }
