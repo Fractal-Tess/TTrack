@@ -1,9 +1,0 @@
-{
-  "active": true,
-  "iteration": 1,
-  "maxIterations": 0,
-  "completionPromise": "COMPLETE",
-  "prompt": "# 📋 TTrack Token Usage Tracking System - PRD\n\n## 🤖 Agent Instructions\n\n* After completing a task, use git to commit your changes.\n* After making a commit, use the changesets cli to create a changeset.\n\n```markdown\n## Agent: <name>\n\n### <date>\n\n- Implemented: <feature>\n- Validated: <how>\n- Commit: <hash>\n```\n\n* Update progress.txt to track your progress upon completion of task.\n* Always use the exa tool to check for documentation of the task you are working on.\n\n\n**Validate Work** - Always verify that your changes are working as expected by using playwright or writing tests.\n\n---\n\n## Phases\nInstructions: You are free to implement the phases in any order you see fit.\n\n* InfluxDB Docker Compose configuration\n* Bucket creation and retention policy (90 days)\n* OpenCode plugin for token tracking\n* Opencode plugin should send data to the InfluxDB database.\n* Web dashboard page with summary metrics \n* Agent breakdown visualizations\n* Time range selector (1h, 24h, 7d, 30d, 90d)\n* Auto-refresh (30s interval)\n* UI components (metric cards, charts, loading states)\n* Responsive minimalist brutalist design and dark mode\n\n---\n\n",
-  "startedAt": "2026-01-17T05:32:24.631Z",
-  "model": ""
-}
