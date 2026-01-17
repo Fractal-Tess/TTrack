@@ -1,97 +1,30 @@
 # TTrack
 
-Token Usage Tracking System for AI/LLM operations.
+OpenCode plugin for tracking AI token usage across projects.
 
-## Overview
+## Plugin
 
-TTrack monitors and aggregates token consumption across AI model interactions. Data is stored in InfluxDB with a 90-day retention policy.
+The TTrack plugin automatically monitors token consumption from AI assistant interactions in OpenCode. It captures input, output, reasoning, and cache tokens for each message and sends them to the tracking API.
 
-## Stack
+## Monorepo
 
-- Bun 1.3.5
-- Next.js 16
-- React 19
-- TypeScript
-- InfluxDB
-- TailwindCSS v4
-- Recharts
-
-## Structure
+This monorepo contains the plugin, tracking client library, web dashboard, and shared UI components.
 
 ```
 TTrack/
-├── apps/web/              # Next.js dashboard
+├── .opencode/
+│   └── plugin/          # OpenCode token tracking plugin
 ├── packages/
-│   ├── tracker/           # Token tracking client
-│   ├── ui/                # Shared UI components
-│   └── typescript-config/  # Shared TS configs
+│   ├── tracker/         # Token tracking client library
+│   ├── ui/              # Shared UI component library
+│   └── typescript-config/  # Shared TypeScript configurations
+└── apps/
+    └── web/             # Next.js dashboard for metrics visualization
 ```
 
-## Quick Start
+## Components
 
-### Prerequisites
-
-- Bun 1.3.5+
-- Docker (for InfluxDB)
-
-### Setup
-
-```bash
-# Install dependencies
-bun install
-
-# Start InfluxDB
-docker-compose up -d
-
-# Start development server
-bun run dev
-```
-
-## Usage
-
-### Tracking Tokens
-
-```typescript
-import { TokenTracker } from "@workspace/tracker";
-
-const tracker = new TokenTracker({
-  url: process.env.INFLUX_URL,
-  token: process.env.INFLUX_TOKEN,
-  org: process.env.INFLUX_ORG,
-  bucket: process.env.INFLUX_BUCKET,
-});
-
-await tracker.track({
-  model: "gpt-4",
-  project: "my-project",
-  agent: "code-assistant",
-  tokens: 1500,
-  promptTokens: 1000,
-  completionTokens: 500,
-});
-```
-
-### Dashboard
-
-Access the dashboard at `http://localhost:3000` after starting the dev server.
-
-## Configuration
-
-Environment variables are validated using Zod. See `apps/web/src/env.ts` for required configuration.
-
-## Development
-
-```bash
-# Build all packages
-bun run build
-
-# Run tests
-bun run test
-
-# Format code
-bun x ultracite fix
-```
-
-## License
-
-MIT
+- **Plugin**: OpenCode integration that captures token usage from assistant messages
+- **Tracker**: Client library for sending token data to the tracking API
+- **Web Dashboard**: Metrics visualization and analytics interface
+- **UI Package**: Shared React components built with shadcn/ui patterns
