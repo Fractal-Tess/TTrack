@@ -20,6 +20,18 @@ RUN turbo prune web --docker
 # ---
 FROM base AS builder
 
+# Accept build arguments for environment variables
+ARG INFLUXDB_URL
+ARG INFLUXDB_TOKEN
+ARG INFLUXDB_ORG
+ARG INFLUXDB_BUCKET
+
+# Set environment variables for the build
+ENV INFLUXDB_URL=$INFLUXDB_URL
+ENV INFLUXDB_TOKEN=$INFLUXDB_TOKEN
+ENV INFLUXDB_ORG=$INFLUXDB_ORG
+ENV INFLUXDB_BUCKET=$INFLUXDB_BUCKET
+
 # Copy all pruned files at once, then install dependencies
 # This avoids conflicts between bun's workspace symlinks and the COPY command
 COPY --from=prepare /app/out/json/ .
