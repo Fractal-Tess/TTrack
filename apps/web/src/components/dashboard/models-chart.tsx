@@ -137,16 +137,21 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                   content={
                     <ChartTooltipContent
                       className="border-2 border-border bg-card font-mono"
-                      formatter={(value, _name, item) => (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-xs">
-                            {item.payload.fullName}
-                          </span>
-                          <span className="font-bold">
-                            {formatNumber(Number(value))} tokens
-                          </span>
-                        </div>
-                      )}
+                      formatter={(value, _name, item) => {
+                        const payload = item.payload as
+                          | { fullName?: string }
+                          | undefined;
+                        return (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-muted-foreground text-xs">
+                              {payload?.fullName}
+                            </span>
+                            <span className="font-bold">
+                              {formatNumber(Number(value))} tokens
+                            </span>
+                          </div>
+                        );
+                      }}
                       hideLabel
                     />
                   }

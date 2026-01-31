@@ -3,12 +3,7 @@
 import { cn } from "@workspace/ui/lib/utils";
 import type { ComponentProps, ComponentType, ReactNode } from "react";
 import { createContext, useContext, useId, useMemo } from "react";
-import {
-  Legend,
-  type LegendProps,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Legend, ResponsiveContainer, Tooltip } from "recharts";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -105,6 +100,39 @@ ${colorConfig
 
 const ChartTooltip = Tooltip;
 
+type TooltipPayloadItem = {
+  name?: string;
+  dataKey?: string;
+  value?: number;
+  color?: string;
+  type?: "none" | string;
+  payload?: {
+    fill?: string;
+  };
+};
+
+interface ChartTooltipContentProps extends ComponentProps<"div"> {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  className?: string;
+  indicator?: "line" | "dot" | "dashed";
+  hideLabel?: boolean;
+  hideIndicator?: boolean;
+  label?: string;
+  labelFormatter?: (value: string, payload: TooltipPayloadItem[]) => string;
+  labelClassName?: string;
+  formatter?: (
+    value: number,
+    name: string,
+    item: TooltipPayloadItem,
+    index: number,
+    payload: unknown
+  ) => ReactNode;
+  color?: string;
+  nameKey?: string;
+  labelKey?: string;
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -119,14 +147,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: ComponentProps<typeof Tooltip> &
-  ComponentProps<"div"> & {
-    hideLabel?: boolean;
-    hideIndicator?: boolean;
-    indicator?: "line" | "dot" | "dashed";
-    nameKey?: string;
-    labelKey?: string;
-  }) {
+}: ChartTooltipContentProps) {
   const { config } = useChart();
 
   const tooltipLabel = useMemo(() => {
@@ -136,16 +157,21 @@ function ChartTooltipContent({
 
     const [item] = payload;
     const key = `${labelKey || item?.dataKey || item?.name || "value"}`;
-    const itemConfig = getPayloadConfigFromPayload(config, item, key);
+    const itemConfig = getPayloadConfigFromPayload(
+      config,
+      item as unknown,
+      key
+    );
     const value =
       !labelKey && typeof label === "string"
         ? config[label as keyof typeof config]?.label || label
         : itemConfig?.label;
 
     if (labelFormatter) {
+      const labelValue = typeof value === "string" ? value : "";
       return (
         <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(labelValue, payload)}
         </div>
       );
     }
@@ -184,8 +210,12 @@ function ChartTooltipContent({
           .filter((item) => item.type !== "none")
           .map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
-            const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color || item.payload.fill || item.color;
+            const itemConfig = getPayloadConfigFromPayload(
+              config,
+              item as unknown,
+              key
+            );
+            const indicatorColor = color || item.payload?.fill || item.color;
 
             return (
               <div
@@ -253,17 +283,20 @@ function ChartTooltipContent({
 
 const ChartLegend = Legend;
 
+interface ChartLegendContentProps extends ComponentProps<"div"> {
+  hideIcon?: boolean;
+  payload?: TooltipPayloadItem[];
+  verticalAlign?: "top" | "bottom";
+  nameKey?: string;
+}
+
 function ChartLegendContent({
   className,
   hideIcon = false,
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: ComponentProps<"div"> &
-  Pick<LegendProps, "payload" | "verticalAlign"> & {
-    hideIcon?: boolean;
-    nameKey?: string;
-  }) {
+}: ChartLegendContentProps) {
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -279,10 +312,14 @@ function ChartLegendContent({
       )}
     >
       {payload
-        .filter((item) => item.type !== "none")
+        ?.filter((item) => item.type !== "none")
         .map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`;
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+          const itemConfig = getPayloadConfigFromPayload(
+            config,
+            item as unknown,
+            key
+          );
 
           return (
             <div

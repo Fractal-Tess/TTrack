@@ -1,9 +1,16 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": [
+        "INFLUXDB_URL",
+        "INFLUXDB_TOKEN",
+        "INFLUXDB_ORG",
+        "INFLUXDB_BUCKET"
+      ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },

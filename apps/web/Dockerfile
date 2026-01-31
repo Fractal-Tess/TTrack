@@ -32,6 +32,12 @@ ENV INFLUXDB_TOKEN=$INFLUXDB_TOKEN
 ENV INFLUXDB_ORG=$INFLUXDB_ORG
 ENV INFLUXDB_BUCKET=$INFLUXDB_BUCKET
 
+# Debug: Verify environment variables are set
+RUN echo "INFLUXDB_URL=$INFLUXDB_URL" && \
+    echo "INFLUXDB_ORG=$INFLUXDB_ORG" && \
+    echo "INFLUXDB_BUCKET=$INFLUXDB_BUCKET" && \
+    echo "INFLUXDB_TOKEN is set: $(if [ -n "$INFLUXDB_TOKEN" ]; then echo 'yes'; else echo 'no'; fi)"
+
 # Copy all pruned files at once, then install dependencies
 # This avoids conflicts between bun's workspace symlinks and the COPY command
 COPY --from=prepare /app/out/json/ .
