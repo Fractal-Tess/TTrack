@@ -47,7 +47,7 @@ export default function DashboardPage() {
                   TTRACK_
                 </h1>
                 <p className="mt-1 font-mono text-muted-foreground text-xs uppercase tracking-wider">
-                  TOKEN USAGE MONITOR // SYSTEM ACTIVE
+                  TOKEN USAGE MONITOR {/* SYSTEM ACTIVE */}
                 </p>
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
         {/* Footer */}
         <footer className="mt-8 border-border border-t-2 pt-4">
           <p className="text-center font-mono text-muted-foreground text-xs uppercase tracking-wider">
-            SYS_STATUS: OPERATIONAL // LAST_SYNC:{" "}
+            SYS_STATUS: OPERATIONAL {/* LAST_SYNC: */}{" "}
             {new Date().toLocaleTimeString("en-US", {
               hour12: false,
               hour: "2-digit",

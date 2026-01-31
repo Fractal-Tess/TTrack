@@ -171,7 +171,7 @@ export const tokenTrackerPlugin: Plugin = async ({ project, client }) => {
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
     })
-    .then(async (result) => {
+    .then((result) => {
       if (result.isErr()) {
         writeToLogFile(
           "[TokenTracker] InfluxDB connection failed on startup",

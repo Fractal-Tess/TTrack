@@ -15,8 +15,14 @@ export type InfluxDBConfig = {
 };
 
 const silentLogger: Logger = {
-  error: () => {},
-  warn: () => {},
+  // Silent logger - errors are intentionally ignored
+  error: () => {
+    /* empty */
+  },
+  // Silent logger - warnings are intentionally ignored
+  warn: () => {
+    /* empty */
+  },
 };
 
 export function trackData(

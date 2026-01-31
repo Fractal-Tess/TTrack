@@ -30,8 +30,6 @@ COPY --from=prepare /app/out/bun.lockb* ./
 RUN bun install --ignore-scripts
 
 # Build the Next.js application
-# Skip env validation during build - env vars are injected at runtime
-ENV SKIP_ENV_VALIDATION=true
 RUN bun run turbo build
 
 # ---
