@@ -2,7 +2,18 @@
 
 import useSWR from "swr";
 
-export type MetricsRange = "1h" | "24h" | "7d" | "30d" | "90d";
+export type MetricsRange =
+  | "5m"
+  | "30m"
+  | "1h"
+  | "3h"
+  | "6h"
+  | "12h"
+  | "24h"
+  | "7d"
+  | "30d"
+  | "90d"
+  | "365d";
 
 export type TokenSummary = {
   total: number;
@@ -42,7 +53,7 @@ const fetcher = async (url: string): Promise<TokenMetrics> => {
   return response.json();
 };
 
-export function useTokenMetrics(range: MetricsRange = "24h") {
+export function useTokenMetrics(range: MetricsRange = "3h") {
   const { data, error, mutate, isLoading } = useSWR<TokenMetrics>(
     `/api/metrics?range=${range}`,
     fetcher,

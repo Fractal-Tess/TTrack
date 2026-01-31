@@ -4,13 +4,14 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  Pie,
+  PieChart,
 } from "@workspace/ui/components/chart";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { Pie, PieChart } from "recharts";
 import type { TokenSummary } from "@/hooks/use-token-metrics";
 
 const tokenTypeConfig = {
@@ -155,6 +156,7 @@ export function BreakdownChart({ summary, isLoading }: BreakdownChartProps) {
                       />
                     }
                     cursor={false}
+                    wrapperStyle={{ zIndex: 100 }}
                   />
                   <Pie
                     data={tokenData}
@@ -223,6 +225,7 @@ export function BreakdownChart({ summary, isLoading }: BreakdownChartProps) {
                       />
                     }
                     cursor={false}
+                    wrapperStyle={{ zIndex: 100 }}
                   />
                   <Pie
                     data={cacheData}

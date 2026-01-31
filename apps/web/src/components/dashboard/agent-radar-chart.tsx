@@ -4,6 +4,10 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
 } from "@workspace/ui/components/chart";
 import {
   Tooltip,
@@ -11,7 +15,6 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { Bot } from "lucide-react";
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 import type { TokenBreakdown } from "@/hooks/use-token-metrics";
 
 const chartConfig = {
@@ -140,6 +143,7 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
                     />
                   }
                   cursor={false}
+                  wrapperStyle={{ zIndex: 100 }}
                 />
                 <Radar
                   dataKey="normalized"

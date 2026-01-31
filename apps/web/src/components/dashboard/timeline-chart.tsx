@@ -1,20 +1,22 @@
 "use client";
 
+import * as React from "react";
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  XAxis,
+  type ChartConfig,
 } from "@workspace/ui/components/chart";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { TokenMetrics } from "@/hooks/use-token-metrics";
 
 const chartConfig = {
+  views: {
+    label: "Tokens",
+  },
   total_tokens: {
     label: "Total",
     color: "var(--chart-1)",
@@ -27,7 +29,7 @@ const chartConfig = {
     label: "Output",
     color: "var(--chart-3)",
   },
-} as const;
+} satisfies ChartConfig;
 
 type TimelineChartProps = {
   metrics: TokenMetrics | null;
@@ -40,9 +42,40 @@ export function TimelineChart({
   isLoading,
   rangeLabel,
 }: TimelineChartProps) {
+  const [activeChart, setActiveChart] =
+    React.useState<keyof typeof chartConfig>("total_tokens");
+
+  const formattedData = React.useMemo(() => {
+    if (!metrics?.timeline) return [];
+    return metrics.timeline.map((item) => ({
+      time: item.time,
+      total_tokens: item.total_tokens || 0,
+      input_tokens: item.input_tokens || 0,
+      output_tokens: item.output_tokens || 0,
+    }));
+  }, [metrics?.timeline]);
+
+  const totals = React.useMemo(
+    () => ({
+      total_tokens: formattedData.reduce(
+        (acc, curr) => acc + curr.total_tokens,
+        0
+      ),
+      input_tokens: formattedData.reduce(
+        (acc, curr) => acc + curr.input_tokens,
+        0
+      ),
+      output_tokens: formattedData.reduce(
+        (acc, curr) => acc + curr.output_tokens,
+        0
+      ),
+    }),
+    [formattedData]
+  );
+
   if (isLoading) {
     return (
-      <div className="h-full border-2 border-border bg-card">
+      <div className="flex h-full flex-col border-2 border-border bg-card">
         <div className="border-border border-b-2 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -51,7 +84,7 @@ export function TimelineChart({
             </div>
           </div>
         </div>
-        <div className="flex h-[300px] items-center justify-center p-4">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <div className="h-4 w-32 animate-pulse bg-muted" />
         </div>
       </div>
@@ -60,7 +93,7 @@ export function TimelineChart({
 
   if (!metrics?.timeline || metrics.timeline.length === 0) {
     return (
-      <div className="h-full border-2 border-border bg-card">
+      <div className="flex h-full flex-col border-2 border-border bg-card">
         <div className="border-border border-b-2 p-4">
           <h3 className="font-bold font-mono text-sm uppercase tracking-wider">
             TOKEN_TIMELINE
@@ -69,7 +102,7 @@ export function TimelineChart({
             RANGE: {rangeLabel || "24H"}
           </p>
         </div>
-        <div className="flex h-[300px] items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center">
           <span className="font-mono text-muted-foreground text-sm uppercase">
             NO_DATA_AVAILABLE
           </span>
@@ -78,138 +111,90 @@ export function TimelineChart({
     );
   }
 
-  const formattedData = metrics.timeline.map((item) => ({
-    time: new Date(item.time).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    total: item.total_tokens || 0,
-    input: item.input_tokens || 0,
-    output: item.output_tokens || 0,
-  }));
-
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="h-full cursor-default border-2 border-border bg-card transition-colors hover:border-primary/50">
-          {/* Header */}
-          <div className="flex items-center justify-between border-border border-b-2 p-4">
-            <div>
-              <h3 className="font-bold font-mono text-sm uppercase tracking-wider">
-                TOKEN_TIMELINE
-              </h3>
-              <p className="mt-1 font-mono text-muted-foreground text-xs">
-                RANGE: {rangeLabel || "24H"}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              {/* Legend */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 bg-[var(--chart-1)]" />
-                  <span className="font-mono text-muted-foreground text-xs">
-                    TOTAL
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 bg-[var(--chart-2)]" />
-                  <span className="font-mono text-muted-foreground text-xs">
-                    INPUT
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 bg-[var(--chart-3)]" />
-                  <span className="font-mono text-muted-foreground text-xs">
-                    OUTPUT
-                  </span>
-                </div>
-              </div>
-              <TrendingUp className="h-4 w-4 text-accent" />
-            </div>
-          </div>
-
-          {/* Chart */}
-          <div className="p-4">
-            <ChartContainer className="h-[280px] w-full" config={chartConfig}>
-              <AreaChart accessibilityLayer data={formattedData}>
-                <CartesianGrid
-                  stroke="var(--border)"
-                  strokeDasharray="none"
-                  strokeWidth={1}
-                  vertical={true}
-                />
-                <XAxis
-                  axisLine={false}
-                  className="font-mono text-[10px]"
-                  dataKey="time"
-                  tick={{ fill: "var(--muted-foreground)" }}
-                  tickFormatter={(value) => value}
-                  tickLine={false}
-                  tickMargin={12}
-                />
-                <YAxis
-                  axisLine={false}
-                  className="font-mono text-[10px]"
-                  tick={{ fill: "var(--muted-foreground)" }}
-                  tickFormatter={(value) => {
-                    if (value >= 1_000_000) {
-                      return `${(value / 1_000_000).toFixed(1)}M`;
-                    }
-                    if (value >= 1000) {
-                      return `${(value / 1000).toFixed(0)}K`;
-                    }
-                    return value;
-                  }}
-                  tickLine={false}
-                  tickMargin={8}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      className="border-2 border-border bg-card font-mono"
-                      indicator="line"
-                    />
-                  }
-                  cursor={{
-                    stroke: "var(--primary)",
-                    strokeWidth: 1,
-                    strokeDasharray: "4 4",
-                  }}
-                />
-                <Area
-                  dataKey="total"
-                  fill="var(--color-total_tokens)"
-                  fillOpacity={0.15}
-                  stroke="var(--color-total_tokens)"
-                  strokeWidth={2}
-                  type="stepAfter"
-                />
-                <Area
-                  dataKey="input"
-                  fill="var(--color-input_tokens)"
-                  fillOpacity={0.1}
-                  stroke="var(--color-input_tokens)"
-                  strokeWidth={2}
-                  type="stepAfter"
-                />
-                <Area
-                  dataKey="output"
-                  fill="var(--color-output_tokens)"
-                  fillOpacity={0.1}
-                  stroke="var(--color-output_tokens)"
-                  strokeWidth={2}
-                  type="stepAfter"
-                />
-              </AreaChart>
-            </ChartContainer>
-          </div>
+    <div className="flex h-full flex-col border-2 border-border bg-card">
+      {/* Header with interactive toggles */}
+      <div className="flex flex-col items-stretch border-border border-b-2 sm:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 p-4">
+          <h3 className="font-bold font-mono text-sm uppercase tracking-wider">
+            TOKEN_TIMELINE
+          </h3>
+          <p className="font-mono text-muted-foreground text-xs">
+            RANGE: {rangeLabel || "24H"}
+          </p>
         </div>
-      </TooltipTrigger>
-      <TooltipContent side="top">
-        <span className="font-mono text-xs">
-          Token usage over time ({rangeLabel})
-        </span>
-      </TooltipContent>
-    </Tooltip>
+        <div className="flex">
+          {(["total_tokens", "input_tokens", "output_tokens"] as const).map(
+            (key) => (
+              <button
+                key={key}
+                data-active={activeChart === key}
+                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t border-border px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-6 sm:py-4"
+                onClick={() => setActiveChart(key)}
+                type="button"
+              >
+                <span className="font-mono text-muted-foreground text-xs uppercase">
+                  {chartConfig[key].label}
+                </span>
+                <span className="font-bold font-mono text-lg leading-none sm:text-2xl">
+                  {totals[key].toLocaleString()}
+                </span>
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="min-h-0 flex-1 p-4">
+        <ChartContainer
+          config={chartConfig}
+          className="h-full w-full"
+        >
+          <BarChart
+            accessibilityLayer
+            data={formattedData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
+            <CartesianGrid vertical={false} stroke="var(--border)" />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={32}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+              }}
+            />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  className="w-[150px] border-2 border-border bg-card font-mono"
+                  nameKey="views"
+                  labelFormatter={(value) => {
+                    return new Date(value).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                  }}
+                />
+              }
+            />
+            <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+          </BarChart>
+        </ChartContainer>
+      </div>
+    </div>
   );
 }

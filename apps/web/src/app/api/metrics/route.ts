@@ -3,12 +3,27 @@ import { config, queryApi } from "@/lib/influx";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const range = searchParams.get("range") || "24h";
+  const range = searchParams.get("range") || "3h";
 
-  let windowPeriod = "15m";
+  let windowPeriod = "5m";
   switch (range) {
+    case "5m":
+      windowPeriod = "10s";
+      break;
+    case "30m":
+      windowPeriod = "30s";
+      break;
     case "1h":
       windowPeriod = "1m";
+      break;
+    case "3h":
+      windowPeriod = "3m";
+      break;
+    case "6h":
+      windowPeriod = "5m";
+      break;
+    case "12h":
+      windowPeriod = "10m";
       break;
     case "24h":
       windowPeriod = "15m";
@@ -22,8 +37,11 @@ export async function GET(request: NextRequest) {
     case "90d":
       windowPeriod = "1d";
       break;
+    case "365d":
+      windowPeriod = "1d";
+      break;
     default:
-      windowPeriod = "15m";
+      windowPeriod = "3m";
       break;
   }
 
@@ -74,8 +92,8 @@ export async function GET(request: NextRequest) {
       |> range(start: -${range})
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens")
-      |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: true)
-      |> yield(name: "timeline")
+      |> group(columns: ["_field"])
+      |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: false)
   `;
 
   try {

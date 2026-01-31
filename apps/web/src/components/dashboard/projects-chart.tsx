@@ -1,9 +1,14 @@
 "use client";
 
 import {
+  Bar,
+  BarChart,
+  Cell,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  XAxis,
+  YAxis,
 } from "@workspace/ui/components/chart";
 import {
   Tooltip,
@@ -11,7 +16,6 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { FolderOpen } from "lucide-react";
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 import type { TokenBreakdown } from "@/hooks/use-token-metrics";
 
 const chartConfig = {
@@ -162,6 +166,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                     />
                   }
                   cursor={{ fill: "var(--accent)", fillOpacity: 0.1 }}
+                  wrapperStyle={{ zIndex: 100 }}
                 />
                 <Bar dataKey="value" radius={0}>
                   {formattedData.map((entry) => (
