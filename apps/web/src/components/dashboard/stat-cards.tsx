@@ -1,6 +1,11 @@
 "use client";
 
-import { Card, CardContent } from "@workspace/ui/components/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { Activity, ArrowDown, ArrowUp, Cpu } from "lucide-react";
 import type { TokenSummary } from "@/hooks/use-token-metrics";
 
 type StatCardProps = {
@@ -8,36 +13,83 @@ type StatCardProps = {
   value: number;
   change?: number;
   isPositive?: boolean;
+  icon: React.ReactNode;
+  color: string;
+  index: number;
 };
 
-function StatCard({ title, value, change, isPositive }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  change,
+  isPositive,
+  icon,
+  index,
+}: StatCardProps) {
   const formatNumber = (num: number) => {
+    if (num >= 1_000_000) {
+      return `${(num / 1_000_000).toFixed(2)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
     return new Intl.NumberFormat("en-US").format(num);
   };
 
   return (
-    <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-between py-6">
-        <div className="text-muted-foreground text-xs uppercase tracking-wider">
-          {title}
-        </div>
-        <div>
-          <div className="font-mono text-3xl tabular-nums tracking-tight">
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className="group relative cursor-default border-2 border-border bg-card p-4 transition-colors hover:border-primary"
+          style={{
+            animationDelay: `${index * 50}ms`,
+          }}
+        >
+          {/* Top bar accent */}
+          <div
+            className="absolute top-0 right-0 left-0 h-0.5"
+            style={{ backgroundColor: `var(--chart-${(index % 5) + 1})` }}
+          />
+
+          {/* Header */}
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
+              {title}
+            </span>
+            <div className="text-muted-foreground transition-colors group-hover:text-primary">
+              {icon}
+            </div>
+          </div>
+
+          {/* Value */}
+          <div className="mb-2 font-bold font-mono text-3xl text-foreground tabular-nums tracking-tight">
             {formatNumber(value)}
           </div>
+
+          {/* Change indicator */}
           {change !== undefined && (
             <div
-              className={`mt-2 font-medium text-xs ${
-                isPositive ? "text-foreground" : "text-muted-foreground"
+              className={`flex items-center gap-1 font-mono text-xs ${
+                isPositive ? "text-accent" : "text-muted-foreground"
               }`}
             >
-              {isPositive ? "+" : ""}
-              {change.toFixed(1)}%
+              {isPositive ? (
+                <ArrowUp className="h-3 w-3" />
+              ) : (
+                <ArrowDown className="h-3 w-3" />
+              )}
+              <span>{Math.abs(change).toFixed(1)}%</span>
+              <span className="text-muted-foreground">vs prev</span>
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <span className="font-mono text-xs">
+          {new Intl.NumberFormat("en-US").format(value)} tokens
+        </span>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -51,11 +103,19 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card className="h-full" key={i}>
-            <CardContent className="flex h-full items-center justify-center py-6">
-              <div className="h-4 w-24 animate-pulse bg-muted" />
-            </CardContent>
-          </Card>
+          <div
+            className="relative border-2 border-border bg-card p-4"
+            key={i}
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
+            <div className="absolute top-0 right-0 left-0 h-0.5 animate-pulse bg-muted" />
+            <div className="mb-3 flex justify-between">
+              <div className="h-3 w-20 animate-pulse bg-muted" />
+              <div className="h-4 w-4 animate-pulse bg-muted" />
+            </div>
+            <div className="mb-2 h-9 w-28 animate-pulse bg-muted" />
+            <div className="h-3 w-16 animate-pulse bg-muted" />
+          </div>
         ))}
       </div>
     );
@@ -65,32 +125,55 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     return null;
   }
 
+  const stats = [
+    {
+      title: "TOTAL",
+      value: summary.total,
+      change: 12.3,
+      isPositive: true,
+      icon: <Activity className="h-4 w-4" />,
+      color: "chart-1",
+    },
+    {
+      title: "INPUT",
+      value: summary.input,
+      change: 8.7,
+      isPositive: true,
+      icon: <ArrowDown className="h-4 w-4" />,
+      color: "chart-2",
+    },
+    {
+      title: "OUTPUT",
+      value: summary.output,
+      change: 15.2,
+      isPositive: true,
+      icon: <ArrowUp className="h-4 w-4" />,
+      color: "chart-3",
+    },
+    {
+      title: "REASONING",
+      value: summary.reasoning,
+      change: 22.1,
+      isPositive: true,
+      icon: <Cpu className="h-4 w-4" />,
+      color: "chart-4",
+    },
+  ];
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        change={12.3}
-        isPositive={true}
-        title="Total Tokens"
-        value={summary.total}
-      />
-      <StatCard
-        change={8.7}
-        isPositive={true}
-        title="Input Tokens"
-        value={summary.input}
-      />
-      <StatCard
-        change={15.2}
-        isPositive={true}
-        title="Output Tokens"
-        value={summary.output}
-      />
-      <StatCard
-        change={22.1}
-        isPositive={true}
-        title="Reasoning Tokens"
-        value={summary.reasoning}
-      />
+      {stats.map((stat, index) => (
+        <StatCard
+          change={stat.change}
+          color={stat.color}
+          icon={stat.icon}
+          index={index}
+          isPositive={stat.isPositive}
+          key={stat.title}
+          title={stat.title}
+          value={stat.value}
+        />
+      ))}
     </div>
   );
 }

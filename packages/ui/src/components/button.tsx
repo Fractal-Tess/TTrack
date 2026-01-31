@@ -38,20 +38,32 @@ const buttonVariants = cva(
   }
 );
 
+type ButtonProps = React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  };
+
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
-  const Comp = asChild ? Slot.Root : "button";
+}: ButtonProps) {
+  if (asChild) {
+    return (
+      <Slot.Root
+        className={cn(buttonVariants({ variant, size, className }))}
+        data-size={size}
+        data-slot="button"
+        data-variant={variant}
+        {...(props as React.ComponentProps<typeof Slot.Root>)}
+      />
+    );
+  }
 
   return (
-    <Comp
+    <button
       className={cn(buttonVariants({ variant, size, className }))}
       data-size={size}
       data-slot="button"

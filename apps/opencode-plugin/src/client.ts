@@ -1,7 +1,8 @@
 import type { ResultAsync } from "neverthrow";
-import type { InfluxDBConfig } from "./api.js";
-import { trackData } from "./api.js";
+import { type InfluxDBConfig, trackData } from "./tracker.js";
 import type { TrackData } from "./types.js";
+
+export type { InfluxDBConfig } from "./tracker.js";
 
 export class TokenTracker {
   private readonly config: InfluxDBConfig;

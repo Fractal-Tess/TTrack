@@ -23,7 +23,6 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*",
-    ".opencode"
+    "packages/*"
   ]
 }

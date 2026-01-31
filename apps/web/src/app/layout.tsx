@@ -1,16 +1,18 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Space_Mono } from "next/font/google";
 
 import "@workspace/ui/globals.css";
 
-const fontSans = Inter({
+const fontMono = Space_Mono({
   subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
-const fontMono = JetBrains_Mono({
+const fontCode = IBM_Plex_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-code",
   display: "swap",
 });
 
@@ -20,9 +22,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className="dark" lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
+        className={`${fontMono.variable} ${fontCode.variable} font-mono antialiased`}
       >
         {children}
       </body>

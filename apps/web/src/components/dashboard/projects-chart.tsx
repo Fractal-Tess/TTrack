@@ -1,18 +1,17 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@workspace/ui/components/chart";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { FolderOpen } from "lucide-react";
+import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 import type { TokenBreakdown } from "@/hooks/use-token-metrics";
 
 const chartConfig = {
@@ -27,35 +26,48 @@ type ProjectsChartProps = {
   isLoading?: boolean;
 };
 
+function formatNumber(num: number): string {
+  if (num >= 1_000_000) {
+    return `${(num / 1_000_000).toFixed(2)}M`;
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`;
+  }
+  return new Intl.NumberFormat("en-US").format(num);
+}
+
 export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="h-4 w-32 animate-pulse bg-muted" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-[250px] items-center justify-center">
-            <div className="h-4 w-24 animate-pulse bg-muted" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-border bg-card">
+        <div className="border-border border-b-2 p-4">
+          <div className="mb-1 h-4 w-36 animate-pulse bg-muted" />
+          <div className="h-3 w-20 animate-pulse bg-muted" />
+        </div>
+        <div className="flex h-[250px] items-center justify-center p-4">
+          <div className="h-4 w-24 animate-pulse bg-muted" />
+        </div>
+      </div>
     );
   }
 
   if (!projects || projects.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Distribution</CardTitle>
-          <CardDescription>By token usage</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
-            No data available
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border-2 border-border bg-card">
+        <div className="border-border border-b-2 p-4">
+          <h3 className="font-bold font-mono text-sm uppercase tracking-wider">
+            PROJECT_DIST
+          </h3>
+          <p className="mt-1 font-mono text-muted-foreground text-xs">
+            BY USAGE
+          </p>
+        </div>
+        <div className="flex h-[250px] items-center justify-center">
+          <span className="font-mono text-muted-foreground text-sm uppercase">
+            NO_DATA_AVAILABLE
+          </span>
+        </div>
+      </div>
     );
   }
 
@@ -65,67 +77,102 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
     0
   );
 
-  const formattedData = topProjects.map((project) => ({
-    name: project.name,
+  const formattedData = topProjects.map((project, index) => ({
+    name:
+      project.name.length > 18
+        ? `${project.name.slice(0, 16)}...`
+        : project.name,
+    fullName: project.name,
     value: project.value,
     percentage:
       totalValue > 0 ? ((project.value / totalValue) * 100).toFixed(0) : "0",
+    fill: `var(--chart-${((index + 1) % 5) + 1})`,
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Project Distribution</CardTitle>
-        <CardDescription>By token usage</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer className="h-[250px] w-full" config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={formattedData}
-            margin={{ left: 100, right: 30, top: 0, bottom: 0 }}
-          >
-            <XAxis
-              axisLine={false}
-              className="text-[10px]"
-              tickFormatter={(value) => {
-                if (value >= 1_000_000) {
-                  return `${(value / 1_000_000).toFixed(1)}M`;
-                }
-                if (value >= 1000) {
-                  return `${(value / 1000).toFixed(0)}K`;
-                }
-                return value;
-              }}
-              tickLine={false}
-              tickMargin={8}
-              type="number"
-            />
-            <YAxis
-              axisLine={false}
-              className="text-[10px]"
-              dataKey="name"
-              tickLine={false}
-              tickMargin={8}
-              type="category"
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="border-border bg-background"
-                  hideLabel
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="cursor-default border-2 border-border bg-card transition-colors hover:border-primary/50">
+          <div className="flex items-center justify-between border-border border-b-2 p-4">
+            <div>
+              <h3 className="font-bold font-mono text-sm uppercase tracking-wider">
+                PROJECT_DIST
+              </h3>
+              <p className="mt-1 font-mono text-muted-foreground text-xs">
+                BY USAGE
+              </p>
+            </div>
+            <FolderOpen className="h-4 w-4 text-accent" />
+          </div>
+          <div className="p-4">
+            <ChartContainer className="h-[220px] w-full" config={chartConfig}>
+              <BarChart
+                accessibilityLayer
+                data={formattedData}
+                layout="vertical"
+                margin={{ left: 0, right: 12, top: 0, bottom: 0 }}
+              >
+                <XAxis
+                  axisLine={false}
+                  className="font-mono text-[10px]"
+                  tick={{ fill: "var(--muted-foreground)" }}
+                  tickFormatter={(value) => {
+                    if (value >= 1_000_000) {
+                      return `${(value / 1_000_000).toFixed(1)}M`;
+                    }
+                    if (value >= 1000) {
+                      return `${(value / 1000).toFixed(0)}K`;
+                    }
+                    return value;
+                  }}
+                  tickLine={false}
+                  tickMargin={8}
+                  type="number"
                 />
-              }
-              cursor={false}
-            />
-            <Bar
-              dataKey="value"
-              fill="var(--color-value)"
-              radius={[0, 0, 0, 0]}
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+                <YAxis
+                  axisLine={false}
+                  className="font-mono text-[10px]"
+                  dataKey="name"
+                  tick={{ fill: "var(--muted-foreground)" }}
+                  tickLine={false}
+                  tickMargin={8}
+                  type="category"
+                  width={100}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      className="border-2 border-border bg-card font-mono"
+                      formatter={(value, _name, item) => (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-xs">
+                            {item.payload.fullName}
+                          </span>
+                          <span className="font-bold">
+                            {formatNumber(Number(value))} tokens
+                          </span>
+                        </div>
+                      )}
+                      hideLabel
+                    />
+                  }
+                  cursor={{ fill: "var(--accent)", fillOpacity: 0.1 }}
+                />
+                <Bar dataKey="value" radius={0}>
+                  {formattedData.map((entry) => (
+                    <Cell fill={entry.fill} key={`cell-${entry.name}`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ChartContainer>
+          </div>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <span className="font-mono text-xs">
+          {projects.length} projects tracked
+        </span>
+      </TooltipContent>
+    </Tooltip>
   );
 }

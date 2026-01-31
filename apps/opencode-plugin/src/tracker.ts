@@ -1,4 +1,9 @@
-import { InfluxDB, Point } from "@influxdata/influxdb-client";
+import {
+  InfluxDB,
+  type Logger,
+  Point,
+  setLogger,
+} from "@influxdata/influxdb-client";
 import { fromPromise, type ResultAsync } from "neverthrow";
 import type { TrackData } from "./types.js";
 
@@ -9,10 +14,17 @@ export type InfluxDBConfig = {
   bucket: string;
 };
 
+const silentLogger: Logger = {
+  error: () => {},
+  warn: () => {},
+};
+
 export function trackData(
   config: InfluxDBConfig,
   data: TrackData
 ): ResultAsync<void, Error> {
+  setLogger(silentLogger);
+
   const influxDB = new InfluxDB({
     url: config.url,
     token: config.token,
@@ -33,7 +45,7 @@ export function trackData(
 
   writeApi.writePoint(point);
 
-  return fromPromise(writeApi.close(), (error) =>
+  return fromPromise(writeApi.close(), (error: unknown) =>
     error instanceof Error ? error : new Error(String(error))
   );
 }

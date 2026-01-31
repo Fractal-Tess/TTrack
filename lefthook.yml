@@ -1,7 +1,7 @@
 pre-commit:
   jobs:
     - run: bun x ultracite fix
-      glob: 
+      glob:
         - "*.js"
         - "*.jsx"
         - "*.ts"
@@ -11,6 +11,4 @@ pre-commit:
         - "*.css"
       exclude:
         - ".opencode/**"
-        - "shadcn-original/**"
-        - ".cursor/**"
       stage_fixed: true

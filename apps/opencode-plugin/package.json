@@ -1,0 +1,36 @@
+{
+  "name": "opencode-ttrack-plugin",
+  "version": "1.0.0",
+  "description": "OpenCode plugin for tracking AI token usage to InfluxDB",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "build:local": "tsup && cp dist/index.js ../../.opencode/plugins/ttrack.js",
+    "build:global": "tsup && cp dist/index.js ~/.config/opencode/plugins/opencode-ttrack-plugin.js"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "token-tracking",
+    "influxdb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
+    "@opencode-ai/plugin": "^1.1.30",
+    "neverthrow": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.9",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2"
+  }
+}

@@ -2,13 +2,11 @@
 
 import { Button } from "@workspace/ui/components/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import { RefreshCw } from "lucide-react";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { RefreshCw, Terminal } from "lucide-react";
 import { useState } from "react";
 import { AgentRadarChart } from "@/components/dashboard/agent-radar-chart";
 import { BreakdownChart } from "@/components/dashboard/breakdown-chart";
@@ -20,11 +18,11 @@ import { TimelineChart } from "@/components/dashboard/timeline-chart";
 import { type MetricsRange, useTokenMetrics } from "@/hooks/use-token-metrics";
 
 const rangeLabels: Record<MetricsRange, string> = {
-  "1h": "1 Hour",
-  "24h": "24 Hours",
-  "7d": "7 Days",
-  "30d": "30 Days",
-  "90d": "90 Days",
+  "1h": "1H",
+  "24h": "24H",
+  "7d": "7D",
+  "30d": "30D",
+  "90d": "90D",
 };
 
 export default function DashboardPage() {
@@ -32,66 +30,94 @@ export default function DashboardPage() {
   const { metrics, isLoading, refresh } = useTokenMetrics(range);
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="mx-auto max-w-[1600px] space-y-6">
-        <header className="flex items-center justify-between border-b pb-4">
-          <div>
-            <h1 className="font-bold text-2xl uppercase tracking-tight">
-              Token Tracking Dashboard
-            </h1>
-            <p className="mt-1 text-muted-foreground text-sm">
-              Monitor AI token usage across your projects
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Select
-              onValueChange={(value: MetricsRange) => setRange(value)}
-              value={range}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1h">1 Hour</SelectItem>
-                <SelectItem value="24h">24 Hours</SelectItem>
-                <SelectItem value="7d">7 Days</SelectItem>
-                <SelectItem value="30d">30 Days</SelectItem>
-                <SelectItem value="90d">90 Days</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              disabled={isLoading}
-              onClick={() => refresh()}
-              size="icon"
-              variant="outline"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-            </Button>
+    <div className="min-h-screen bg-background p-3 md:p-6 lg:p-8">
+      {/* Scanline overlay effect */}
+      <div className="pointer-events-none fixed inset-0 z-50 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.03)_2px,rgba(0,0,0,0.03)_4px)]" />
+
+      <div className="mx-auto max-w-[1800px]">
+        {/* Header */}
+        <header className="mb-8 border-border border-b-2 pb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="mt-1 flex h-10 w-10 items-center justify-center border-2 border-primary bg-primary/10">
+                <Terminal className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="font-bold text-xl uppercase tracking-[0.2em] md:text-2xl">
+                  TTRACK_
+                </h1>
+                <p className="mt-1 font-mono text-muted-foreground text-xs uppercase tracking-wider">
+                  TOKEN USAGE MONITOR // SYSTEM ACTIVE
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Time range selector */}
+              <div className="flex border-2 border-border">
+                {(Object.keys(rangeLabels) as MetricsRange[]).map((key) => (
+                  <button
+                    className={`px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
+                      range === key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                    key={key}
+                    onClick={() => setRange(key)}
+                    type="button"
+                  >
+                    {rangeLabels[key]}
+                  </button>
+                ))}
+              </div>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-10 w-10 border-2"
+                    disabled={isLoading}
+                    onClick={() => refresh()}
+                    size="icon"
+                    variant="outline"
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Refresh data</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         </header>
 
-        <div className="space-y-6">
+        {/* Dashboard grid */}
+        <div className="space-y-4">
+          {/* Stat cards row */}
           <StatCards isLoading={isLoading} summary={metrics?.summary || null} />
 
-          <TimelineChart
-            isLoading={isLoading}
-            metrics={metrics || null}
-            rangeLabel={rangeLabels[range]}
-          />
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="md:col-span-2">
-              <BreakdownChart
+          {/* Main chart area */}
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <TimelineChart
                 isLoading={isLoading}
-                summary={metrics?.summary || null}
+                metrics={metrics || null}
+                rangeLabel={rangeLabels[range]}
               />
             </div>
-            <RecentActivity isLoading={isLoading} metrics={metrics || null} />
+            <div>
+              <RecentActivity isLoading={isLoading} metrics={metrics || null} />
+            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* Breakdown section */}
+          <BreakdownChart
+            isLoading={isLoading}
+            summary={metrics?.summary || null}
+          />
+
+          {/* Bottom charts grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <ModelsChart
               isLoading={isLoading}
               models={metrics?.models || null}
@@ -100,13 +126,25 @@ export default function DashboardPage() {
               isLoading={isLoading}
               projects={metrics?.projects || null}
             />
+            <AgentRadarChart
+              agents={metrics?.agents || null}
+              isLoading={isLoading}
+            />
           </div>
-
-          <AgentRadarChart
-            agents={metrics?.agents || null}
-            isLoading={isLoading}
-          />
         </div>
+
+        {/* Footer */}
+        <footer className="mt-8 border-border border-t-2 pt-4">
+          <p className="text-center font-mono text-muted-foreground text-xs uppercase tracking-wider">
+            SYS_STATUS: OPERATIONAL // LAST_SYNC:{" "}
+            {new Date().toLocaleTimeString("en-US", {
+              hour12: false,
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </p>
+        </footer>
       </div>
     </div>
   );

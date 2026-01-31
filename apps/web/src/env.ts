@@ -7,10 +7,10 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    INFLUXDB_URL: z.string().url().default("http://localhost:8086"),
-    INFLUXDB_TOKEN: z.string().default("my-super-secret-auth-token"),
-    INFLUXDB_ORG: z.string().default("ttrack-org"),
-    INFLUXDB_BUCKET: z.string().default("token-usage"),
+    INFLUXDB_URL: z.string().url(),
+    INFLUXDB_TOKEN: z.string(),
+    INFLUXDB_ORG: z.string(),
+    INFLUXDB_BUCKET: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -21,9 +21,7 @@ export const env = createEnv({
    * isn't built with invalid env vars. To expose them to the client, prefix them with
    * `NEXT_PUBLIC_`.
    */
-  client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
-  },
+  client: {},
 
   /**
    * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
