@@ -1,16 +1,16 @@
 "use client";
 
-import * as React from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   XAxis,
-  type ChartConfig,
 } from "@workspace/ui/components/chart";
+import { useMemo, useState } from "react";
 import type { TokenMetrics } from "@/hooks/use-token-metrics";
 
 const chartConfig = {
@@ -43,10 +43,12 @@ export function TimelineChart({
   rangeLabel,
 }: TimelineChartProps) {
   const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("total_tokens");
+    useState<keyof typeof chartConfig>("total_tokens");
 
-  const formattedData = React.useMemo(() => {
-    if (!metrics?.timeline) return [];
+  const formattedData = useMemo(() => {
+    if (!metrics?.timeline) {
+      return [];
+    }
     return metrics.timeline.map((item) => ({
       time: item.time,
       total_tokens: item.total_tokens || 0,
@@ -55,7 +57,7 @@ export function TimelineChart({
     }));
   }, [metrics?.timeline]);
 
-  const totals = React.useMemo(
+  const totals = useMemo(
     () => ({
       total_tokens: formattedData.reduce(
         (acc, curr) => acc + curr.total_tokens,
@@ -127,9 +129,9 @@ export function TimelineChart({
           {(["total_tokens", "input_tokens", "output_tokens"] as const).map(
             (key) => (
               <button
-                key={key}
+                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-border border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
                 data-active={activeChart === key}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t border-border px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-6 sm:py-4"
+                key={key}
                 onClick={() => setActiveChart(key)}
                 type="button"
               >
@@ -147,10 +149,7 @@ export function TimelineChart({
 
       {/* Chart */}
       <div className="min-h-0 flex-1 p-4">
-        <ChartContainer
-          config={chartConfig}
-          className="h-full w-full"
-        >
+        <ChartContainer className="h-full w-full" config={chartConfig}>
           <BarChart
             accessibilityLayer
             data={formattedData}
@@ -159,12 +158,10 @@ export function TimelineChart({
               right: 12,
             }}
           >
-            <CartesianGrid vertical={false} stroke="var(--border)" />
+            <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis
-              dataKey="time"
-              tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              dataKey="time"
               minTickGap={32}
               tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => {
@@ -174,12 +171,13 @@ export function TimelineChart({
                   minute: "2-digit",
                 });
               }}
+              tickLine={false}
+              tickMargin={8}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   className="w-[150px] border-2 border-border bg-card font-mono"
-                  nameKey="views"
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleString("en-US", {
                       month: "short",
@@ -188,6 +186,7 @@ export function TimelineChart({
                       minute: "2-digit",
                     });
                   }}
+                  nameKey="views"
                 />
               }
             />

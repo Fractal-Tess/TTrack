@@ -3,23 +3,7 @@
 import { cn } from "@workspace/ui/lib/utils";
 import type { ComponentProps, ComponentType, ReactNode } from "react";
 import { createContext, useContext, useId, useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Legend, ResponsiveContainer, Tooltip } from "recharts";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -400,15 +384,18 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config];
 }
 
+// Chart wrapper components
 export {
-  // Chart wrapper components
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
-  // Re-export recharts components
+};
+
+// Re-export recharts components
+export {
   Bar,
   BarChart,
   CartesianGrid,
@@ -421,4 +408,4 @@ export {
   RadarChart,
   XAxis,
   YAxis,
-};
+} from "recharts";
