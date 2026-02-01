@@ -9,7 +9,8 @@
         "INFLUXDB_URL",
         "INFLUXDB_TOKEN",
         "INFLUXDB_ORG",
-        "INFLUXDB_BUCKET"
+        "INFLUXDB_BUCKET",
+        "NEXT_PUBLIC_APP_URL"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
