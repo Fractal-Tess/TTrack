@@ -60,7 +60,7 @@ export function useTokenMetrics(range: MetricsRange = "3h") {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 30_000,
+      refreshInterval: 5000,
     }
   );
 

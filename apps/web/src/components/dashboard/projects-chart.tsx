@@ -119,7 +119,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                 <XAxis
                   axisLine={false}
                   className="font-mono text-[10px]"
-                  tick={{ fill: "var(--muted-foreground)" }}
+                  tick={{ fill: "var(--foreground)", opacity: 0.8 }}
                   tickFormatter={(value) => {
                     if (value >= 1_000_000) {
                       return `${(value / 1_000_000).toFixed(1)}M`;
@@ -137,7 +137,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                   axisLine={false}
                   className="font-mono text-[10px]"
                   dataKey="name"
-                  tick={{ fill: "var(--muted-foreground)" }}
+                  tick={{ fill: "var(--foreground)", opacity: 0.9 }}
                   tickLine={false}
                   tickMargin={8}
                   type="category"

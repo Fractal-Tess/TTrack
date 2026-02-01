@@ -20,10 +20,14 @@ const fontCode = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "TTrack",
   description: "Track and visualize AI token usage across your projects",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   openGraph: {
     title: "TTrack - Token Tracker",
     description: "Track and visualize AI token usage across your projects",
     type: "website",
+    siteName: "TTrack",
     images: [
       {
         url: "/preview.png",
@@ -38,6 +42,9 @@ export const metadata: Metadata = {
     title: "TTrack - Token Tracker",
     description: "Track and visualize AI token usage across your projects",
     images: ["/preview.png"],
+  },
+  other: {
+    "theme-color": "#00D4AA",
   },
 };
 

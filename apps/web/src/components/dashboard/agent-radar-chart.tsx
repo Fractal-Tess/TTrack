@@ -115,9 +115,10 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
                 <PolarAngleAxis
                   dataKey="agent"
                   tick={{
-                    fill: "var(--muted-foreground)",
+                    fill: "var(--foreground)",
                     fontSize: 10,
                     fontFamily: "var(--font-mono)",
+                    opacity: 0.9,
                   }}
                   tickLine={false}
                 />
