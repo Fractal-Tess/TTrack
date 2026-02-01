@@ -12,5 +12,9 @@ export default defineConfig({
   platform: "node",
   bundle: true,
   external: ["@opencode-ai/plugin"],
-  noExternal: ["@influxdata/influxdb-client", "neverthrow"],
+  noExternal: [
+    "@influxdata/influxdb-client",
+    "neverthrow",
+    "@workspace/tracker",
+  ],
 });
