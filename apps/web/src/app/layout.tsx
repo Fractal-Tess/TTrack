@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Mono } from "next/font/google";
 
 import "@workspace/ui/globals.css";
+import { env } from "@/env";
 
 const fontMono = Space_Mono({
   subsets: ["latin"],
@@ -20,9 +21,7 @@ const fontCode = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "TTrack",
   description: "Track and visualize AI token usage across your projects",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  ),
+  metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
   openGraph: {
     title: "TTrack - Token Tracker",
     description: "Track and visualize AI token usage across your projects",
