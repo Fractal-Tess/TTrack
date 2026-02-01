@@ -5,7 +5,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { Activity, ArrowDown, ArrowUp, Cpu } from "lucide-react";
+import {
+  Activity,
+  ArrowDown,
+  ArrowUp,
+  Cpu,
+  FileCode,
+  FileMinus,
+  FilePlus,
+} from "lucide-react";
 import type { TokenSummary } from "@/hooks/use-token-metrics";
 
 type StatCardProps = {
@@ -16,6 +24,7 @@ type StatCardProps = {
   icon: React.ReactNode;
   color: string;
   index: number;
+  unit?: string;
 };
 
 function StatCard({
@@ -25,6 +34,7 @@ function StatCard({
   isPositive,
   icon,
   index,
+  unit = "tokens",
 }: StatCardProps) {
   const formatNumber = (num: number) => {
     if (num >= 1_000_000) {
@@ -86,7 +96,7 @@ function StatCard({
       </TooltipTrigger>
       <TooltipContent side="bottom">
         <span className="font-mono text-xs">
-          {new Intl.NumberFormat("en-US").format(value)} tokens
+          {new Intl.NumberFormat("en-US").format(value)} {unit}
         </span>
       </TooltipContent>
     </Tooltip>
@@ -102,7 +112,7 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
           <div
             className="relative border-2 border-border bg-card p-4"
             key={i}
@@ -133,6 +143,7 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
       isPositive: true,
       icon: <Activity className="h-4 w-4" />,
       color: "chart-1",
+      unit: "tokens",
     },
     {
       title: "INPUT",
@@ -141,6 +152,7 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
       isPositive: true,
       icon: <ArrowDown className="h-4 w-4" />,
       color: "chart-2",
+      unit: "tokens",
     },
     {
       title: "OUTPUT",
@@ -149,6 +161,7 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
       isPositive: true,
       icon: <ArrowUp className="h-4 w-4" />,
       color: "chart-3",
+      unit: "tokens",
     },
     {
       title: "REASONING",
@@ -157,6 +170,28 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
       isPositive: true,
       icon: <Cpu className="h-4 w-4" />,
       color: "chart-4",
+      unit: "tokens",
+    },
+    {
+      title: "FILES",
+      value: summary.filesChanged,
+      icon: <FileCode className="h-4 w-4" />,
+      color: "chart-5",
+      unit: "files",
+    },
+    {
+      title: "ADDITIONS",
+      value: summary.additions,
+      icon: <FilePlus className="h-4 w-4" />,
+      color: "chart-1",
+      unit: "lines",
+    },
+    {
+      title: "DELETIONS",
+      value: summary.deletions,
+      icon: <FileMinus className="h-4 w-4" />,
+      color: "chart-2",
+      unit: "lines",
     },
   ];
 
@@ -171,6 +206,7 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
           isPositive={stat.isPositive}
           key={stat.title}
           title={stat.title}
+          unit={stat.unit}
           value={stat.value}
         />
       ))}

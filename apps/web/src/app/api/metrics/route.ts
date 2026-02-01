@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     from(bucket: "${config.bucket}")
       |> range(start: -${range})
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
-      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens")
+      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> sum()
   `;
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     from(bucket: "${config.bucket}")
       |> range(start: -${range})
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
-      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens")
+      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: false)
   `;
@@ -104,6 +104,9 @@ export async function GET(request: NextRequest) {
       reasoning: number;
       cacheRead: number;
       cacheWrite: number;
+      additions: number;
+      deletions: number;
+      filesChanged: number;
     } = {
       total: 0,
       input: 0,
@@ -111,6 +114,9 @@ export async function GET(request: NextRequest) {
       reasoning: 0,
       cacheRead: 0,
       cacheWrite: 0,
+      additions: 0,
+      deletions: 0,
+      filesChanged: 0,
     };
     const agentData: Array<{ name: string; value: number }> = [];
     const modelData: Array<{ name: string; value: number }> = [];
@@ -120,27 +126,25 @@ export async function GET(request: NextRequest) {
       [key: string]: string | number | undefined;
     }> = [];
 
+    const fieldToKey: Record<string, keyof typeof summaryData> = {
+      total_tokens: "total",
+      input_tokens: "input",
+      output_tokens: "output",
+      reasoning_tokens: "reasoning",
+      cache_read_tokens: "cacheRead",
+      cache_write_tokens: "cacheWrite",
+      additions: "additions",
+      deletions: "deletions",
+      files_changed: "filesChanged",
+    };
+
     await new Promise<void>((resolve, reject) => {
       queryApi.queryRows(fluxQuerySummary, {
         next(row, tableMeta) {
           const o = tableMeta.toObject(row);
-          if (o._field === "total_tokens") {
-            summaryData.total = o._value;
-          }
-          if (o._field === "input_tokens") {
-            summaryData.input = o._value;
-          }
-          if (o._field === "output_tokens") {
-            summaryData.output = o._value;
-          }
-          if (o._field === "reasoning_tokens") {
-            summaryData.reasoning = o._value;
-          }
-          if (o._field === "cache_read_tokens") {
-            summaryData.cacheRead = o._value;
-          }
-          if (o._field === "cache_write_tokens") {
-            summaryData.cacheWrite = o._value;
+          const key = fieldToKey[o._field as string];
+          if (key) {
+            summaryData[key] = o._value;
           }
         },
         error(error) {

@@ -20,6 +20,7 @@
       "dependencies": {
         "@influxdata/influxdb-client": "^1.35.0",
         "@opencode-ai/plugin": "^1.1.48",
+        "@workspace/tracker": "workspace:*",
         "neverthrow": "^8.2.0",
       },
       "devDependencies": {

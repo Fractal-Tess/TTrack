@@ -22,6 +22,9 @@ export type TokenSummary = {
   reasoning: number;
   cacheRead: number;
   cacheWrite: number;
+  additions: number;
+  deletions: number;
+  filesChanged: number;
 };
 
 export type TokenBreakdown = {
@@ -42,6 +45,9 @@ export type TokenMetrics = {
     reasoning_tokens?: number;
     cache_read_tokens?: number;
     cache_write_tokens?: number;
+    additions?: number;
+    deletions?: number;
+    files_changed?: number;
   }>;
 };
 

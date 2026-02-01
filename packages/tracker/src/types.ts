@@ -7,4 +7,7 @@ export type TrackData = {
   reasoningTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  additions: number;
+  deletions: number;
+  filesChanged: number;
 };
