@@ -27,6 +27,18 @@ export type TokenSummary = {
   filesChanged: number;
 };
 
+export type TokenSummaryChanges = {
+  total: number;
+  input: number;
+  output: number;
+  reasoning: number;
+  cacheRead: number;
+  cacheWrite: number;
+  additions: number;
+  deletions: number;
+  filesChanged: number;
+};
+
 export type TokenBreakdown = {
   name: string;
   value: number;
@@ -34,6 +46,8 @@ export type TokenBreakdown = {
 
 export type TokenMetrics = {
   summary: TokenSummary;
+  changes: TokenSummaryChanges;
+  previousSummary: TokenSummary;
   agents: TokenBreakdown[];
   models: TokenBreakdown[];
   projects: TokenBreakdown[];

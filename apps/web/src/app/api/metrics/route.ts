@@ -1,62 +1,84 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { config, queryApi } from "@/lib/influx";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const range = searchParams.get("range") || "3h";
+const RANGE_REGEX = /^(\d+)([mhd])$/;
 
-  let windowPeriod = "5m";
+function parseRange(range: string): { value: number; unit: string } {
+  const match = range.match(RANGE_REGEX);
+  if (!match) {
+    return { value: 3, unit: "h" };
+  }
+  const value = match[1];
+  const unit = match[2];
+  if (!(value && unit)) {
+    return { value: 3, unit: "h" };
+  }
+  return {
+    value: Number.parseInt(value, 10),
+    unit,
+  };
+}
+
+function getWindowPeriod(range: string): string {
   switch (range) {
     case "5m":
-      windowPeriod = "10s";
-      break;
+      return "10s";
     case "30m":
-      windowPeriod = "30s";
-      break;
+      return "30s";
     case "1h":
-      windowPeriod = "1m";
-      break;
+      return "1m";
     case "3h":
-      windowPeriod = "3m";
-      break;
+      return "3m";
     case "6h":
-      windowPeriod = "5m";
-      break;
+      return "5m";
     case "12h":
-      windowPeriod = "10m";
-      break;
+      return "10m";
     case "24h":
-      windowPeriod = "15m";
-      break;
+      return "15m";
     case "7d":
-      windowPeriod = "1h";
-      break;
+      return "1h";
     case "30d":
-      windowPeriod = "4h";
-      break;
+      return "4h";
     case "90d":
-      windowPeriod = "1d";
-      break;
+      return "1d";
     case "365d":
-      windowPeriod = "1d";
-      break;
+      return "1d";
     default:
-      windowPeriod = "3m";
-      break;
+      return "3m";
   }
+}
 
-  const fluxQuerySummary = `
-    from(bucket: "${config.bucket}")
-      |> range(start: -${range})
+function buildSummaryQuery(
+  bucket: string,
+  start: string,
+  stop: string | null
+): string {
+  const rangeClause = stop
+    ? `range(start: ${start}, stop: ${stop})`
+    : `range(start: ${start})`;
+
+  return `
+    from(bucket: "${bucket}")
+      |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> sum()
   `;
+}
 
-  const fluxQueryByAgent = `
-    from(bucket: "${config.bucket}")
-      |> range(start: -${range})
+function buildAgentQuery(
+  bucket: string,
+  start: string,
+  stop: string | null
+): string {
+  const rangeClause = stop
+    ? `range(start: ${start}, stop: ${stop})`
+    : `range(start: ${start})`;
+
+  return `
+    from(bucket: "${bucket}")
+      |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
       |> group(columns: ["agent"])
@@ -64,10 +86,20 @@ export async function GET(request: NextRequest) {
       |> group()
       |> sort(columns: ["_value"], desc: true)
   `;
+}
 
-  const fluxQueryByModel = `
-    from(bucket: "${config.bucket}")
-      |> range(start: -${range})
+function buildModelQuery(
+  bucket: string,
+  start: string,
+  stop: string | null
+): string {
+  const rangeClause = stop
+    ? `range(start: ${start}, stop: ${stop})`
+    : `range(start: ${start})`;
+
+  return `
+    from(bucket: "${bucket}")
+      |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
       |> group(columns: ["model"])
@@ -75,10 +107,20 @@ export async function GET(request: NextRequest) {
       |> group()
       |> sort(columns: ["_value"], desc: true)
   `;
+}
 
-  const fluxQueryByProject = `
-    from(bucket: "${config.bucket}")
-      |> range(start: -${range})
+function buildProjectQuery(
+  bucket: string,
+  start: string,
+  stop: string | null
+): string {
+  const rangeClause = stop
+    ? `range(start: ${start}, stop: ${stop})`
+    : `range(start: ${start})`;
+
+  return `
+    from(bucket: "${bucket}")
+      |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
       |> group(columns: ["project"])
@@ -86,151 +128,228 @@ export async function GET(request: NextRequest) {
       |> group()
       |> sort(columns: ["_value"], desc: true)
   `;
+}
 
-  const fluxQueryTimeline = `
-    from(bucket: "${config.bucket}")
+function buildTimelineQuery(
+  bucket: string,
+  range: string,
+  windowPeriod: string
+): string {
+  return `
+    from(bucket: "${bucket}")
       |> range(start: -${range})
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: false)
   `;
+}
 
-  try {
-    const summaryData: {
-      total: number;
-      input: number;
-      output: number;
-      reasoning: number;
-      cacheRead: number;
-      cacheWrite: number;
-      additions: number;
-      deletions: number;
-      filesChanged: number;
-    } = {
-      total: 0,
-      input: 0,
-      output: 0,
-      reasoning: 0,
-      cacheRead: 0,
-      cacheWrite: 0,
-      additions: 0,
-      deletions: 0,
-      filesChanged: 0,
-    };
-    const agentData: Array<{ name: string; value: number }> = [];
-    const modelData: Array<{ name: string; value: number }> = [];
-    const projectData: Array<{ name: string; value: number }> = [];
-    const timelineData: Array<{
-      time: string;
-      [key: string]: string | number | undefined;
-    }> = [];
+type SummaryData = {
+  total: number;
+  input: number;
+  output: number;
+  reasoning: number;
+  cacheRead: number;
+  cacheWrite: number;
+  additions: number;
+  deletions: number;
+  filesChanged: number;
+};
 
-    const fieldToKey: Record<string, keyof typeof summaryData> = {
-      total_tokens: "total",
-      input_tokens: "input",
-      output_tokens: "output",
-      reasoning_tokens: "reasoning",
-      cache_read_tokens: "cacheRead",
-      cache_write_tokens: "cacheWrite",
-      additions: "additions",
-      deletions: "deletions",
-      files_changed: "filesChanged",
-    };
+function createEmptySummary(): SummaryData {
+  return {
+    total: 0,
+    input: 0,
+    output: 0,
+    reasoning: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    additions: 0,
+    deletions: 0,
+    filesChanged: 0,
+  };
+}
 
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(fluxQuerySummary, {
-        next(row, tableMeta) {
-          const o = tableMeta.toObject(row);
-          const key = fieldToKey[o._field as string];
-          if (key) {
-            summaryData[key] = o._value;
-          }
-        },
-        error(error) {
-          reject(error);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(fluxQueryByAgent, {
-        next(row, tableMeta) {
-          const o = tableMeta.toObject(row);
-          agentData.push({ name: o.agent, value: o._value });
-        },
-        error(error) {
-          reject(error);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(fluxQueryByModel, {
-        next(row, tableMeta) {
-          const o = tableMeta.toObject(row);
-          modelData.push({ name: o.model, value: o._value });
-        },
-        error(error) {
-          reject(error);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(fluxQueryByProject, {
-        next(row, tableMeta) {
-          const o = tableMeta.toObject(row);
-          projectData.push({ name: o.project, value: o._value });
-        },
-        error(error) {
-          reject(error);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(fluxQueryTimeline, {
-        next(row, tableMeta) {
-          const o = tableMeta.toObject(row);
-          const timelineItem = timelineData.find((t) => t.time === o._time);
-          if (timelineItem) {
-            timelineItem[o._field] = o._value || 0;
-          } else {
-            timelineData.push({ time: o._time, [o._field]: o._value || 0 });
-          }
-        },
-        error(error) {
-          reject(error);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    return NextResponse.json({
-      summary: summaryData,
-      agents: agentData,
-      models: modelData,
-      projects: projectData,
-      timeline: timelineData,
-    });
-  } catch (e) {
-    const error = e instanceof Error ? e : new Error(String(e));
-    console.error("Error querying InfluxDB", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+function calculateChange(current: number, previous: number): number {
+  if (previous === 0) {
+    return current > 0 ? 100 : 0;
   }
+  return ((current - previous) / previous) * 100;
+}
+
+function querySummary(fluxQuery: string): Promise<SummaryData> {
+  const summary = createEmptySummary();
+  const fieldToKey: Record<string, keyof SummaryData> = {
+    total_tokens: "total",
+    input_tokens: "input",
+    output_tokens: "output",
+    reasoning_tokens: "reasoning",
+    cache_read_tokens: "cacheRead",
+    cache_write_tokens: "cacheWrite",
+    additions: "additions",
+    deletions: "deletions",
+    files_changed: "filesChanged",
+  };
+
+  return new Promise((resolve, reject) => {
+    queryApi.queryRows(fluxQuery, {
+      next(row, tableMeta) {
+        const o = tableMeta.toObject(row);
+        const key = fieldToKey[o._field as string];
+        if (key) {
+          summary[key] = o._value;
+        }
+      },
+      error(error) {
+        reject(error);
+      },
+      complete() {
+        resolve(summary);
+      },
+    });
+  });
+}
+
+function queryBreakdown(
+  fluxQuery: string
+): Promise<Array<{ name: string; value: number }>> {
+  const data: Array<{ name: string; value: number }> = [];
+
+  return new Promise((resolve, reject) => {
+    queryApi.queryRows(fluxQuery, {
+      next(row, tableMeta) {
+        const o = tableMeta.toObject(row);
+        const name = o.agent || o.model || o.project;
+        if (name) {
+          data.push({ name, value: o._value });
+        }
+      },
+      error(error) {
+        reject(error);
+      },
+      complete() {
+        resolve(data);
+      },
+    });
+  });
+}
+
+function queryTimeline(fluxQuery: string): Promise<
+  Array<{
+    time: string;
+    [key: string]: string | number | undefined;
+  }>
+> {
+  const data: Array<{
+    time: string;
+    [key: string]: string | number | undefined;
+  }> = [];
+
+  return new Promise((resolve, reject) => {
+    queryApi.queryRows(fluxQuery, {
+      next(row, tableMeta) {
+        const o = tableMeta.toObject(row);
+        const timelineItem = data.find((t) => t.time === o._time);
+        if (timelineItem) {
+          timelineItem[o._field] = o._value || 0;
+        } else {
+          data.push({ time: o._time, [o._field]: o._value || 0 });
+        }
+      },
+      error(error) {
+        reject(error);
+      },
+      complete() {
+        resolve(data);
+      },
+    });
+  });
+}
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const range = searchParams.get("range") || "3h";
+
+  const windowPeriod = getWindowPeriod(range);
+  const { value, unit } = parseRange(range);
+
+  const previousStart = `-${2 * value}${unit}`;
+  const previousStop = `-${value}${unit}`;
+
+  const currentSummaryQuery = buildSummaryQuery(
+    config.bucket,
+    `-${range}`,
+    null
+  );
+  const currentAgentQuery = buildAgentQuery(config.bucket, `-${range}`, null);
+  const currentModelQuery = buildModelQuery(config.bucket, `-${range}`, null);
+  const currentProjectQuery = buildProjectQuery(
+    config.bucket,
+    `-${range}`,
+    null
+  );
+  const timelineQuery = buildTimelineQuery(config.bucket, range, windowPeriod);
+
+  const previousSummaryQuery = buildSummaryQuery(
+    config.bucket,
+    previousStart,
+    previousStop
+  );
+
+  const [
+    currentSummary,
+    currentAgents,
+    currentModels,
+    currentProjects,
+    timelineData,
+    previousSummary,
+  ] = await Promise.all([
+    querySummary(currentSummaryQuery),
+    queryBreakdown(currentAgentQuery),
+    queryBreakdown(currentModelQuery),
+    queryBreakdown(currentProjectQuery),
+    queryTimeline(timelineQuery),
+    querySummary(previousSummaryQuery),
+  ]);
+
+  const changes = {
+    total: calculateChange(currentSummary.total, previousSummary.total),
+    input: calculateChange(currentSummary.input, previousSummary.input),
+    output: calculateChange(currentSummary.output, previousSummary.output),
+    reasoning: calculateChange(
+      currentSummary.reasoning,
+      previousSummary.reasoning
+    ),
+    cacheRead: calculateChange(
+      currentSummary.cacheRead,
+      previousSummary.cacheRead
+    ),
+    cacheWrite: calculateChange(
+      currentSummary.cacheWrite,
+      previousSummary.cacheWrite
+    ),
+    additions: calculateChange(
+      currentSummary.additions,
+      previousSummary.additions
+    ),
+    deletions: calculateChange(
+      currentSummary.deletions,
+      previousSummary.deletions
+    ),
+    filesChanged: calculateChange(
+      currentSummary.filesChanged,
+      previousSummary.filesChanged
+    ),
+  };
+
+  return NextResponse.json({
+    summary: currentSummary,
+    changes,
+    previousSummary,
+    agents: currentAgents,
+    models: currentModels,
+    projects: currentProjects,
+    timeline: timelineData,
+  });
 }
