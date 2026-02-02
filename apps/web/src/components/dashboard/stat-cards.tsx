@@ -14,7 +14,10 @@ import {
   FileMinus,
   FilePlus,
 } from "lucide-react";
-import type { TokenSummary } from "@/hooks/use-token-metrics";
+import type {
+  TokenSummary,
+  TokenSummaryChanges,
+} from "@/hooks/use-token-metrics";
 
 type StatCardProps = {
   title: string;
@@ -105,10 +108,11 @@ function StatCard({
 
 type StatCardsProps = {
   summary: TokenSummary | null;
+  changes: TokenSummaryChanges | null;
   isLoading?: boolean;
 };
 
-export function StatCards({ summary, isLoading }: StatCardsProps) {
+export function StatCards({ summary, changes, isLoading }: StatCardsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -139,8 +143,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "TOTAL",
       value: summary.total,
-      change: 12.3,
-      isPositive: true,
+      change: changes?.total,
+      isPositive: (changes?.total ?? 0) >= 0,
       icon: <Activity className="h-4 w-4" />,
       color: "chart-1",
       unit: "tokens",
@@ -148,8 +152,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "INPUT",
       value: summary.input,
-      change: 8.7,
-      isPositive: true,
+      change: changes?.input,
+      isPositive: (changes?.input ?? 0) >= 0,
       icon: <ArrowDown className="h-4 w-4" />,
       color: "chart-2",
       unit: "tokens",
@@ -157,8 +161,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "OUTPUT",
       value: summary.output,
-      change: 15.2,
-      isPositive: true,
+      change: changes?.output,
+      isPositive: (changes?.output ?? 0) >= 0,
       icon: <ArrowUp className="h-4 w-4" />,
       color: "chart-3",
       unit: "tokens",
@@ -166,8 +170,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "REASONING",
       value: summary.reasoning,
-      change: 22.1,
-      isPositive: true,
+      change: changes?.reasoning,
+      isPositive: (changes?.reasoning ?? 0) >= 0,
       icon: <Cpu className="h-4 w-4" />,
       color: "chart-4",
       unit: "tokens",
@@ -175,6 +179,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "FILES",
       value: summary.filesChanged,
+      change: changes?.filesChanged,
+      isPositive: (changes?.filesChanged ?? 0) >= 0,
       icon: <FileCode className="h-4 w-4" />,
       color: "chart-5",
       unit: "files",
@@ -182,6 +188,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "ADDITIONS",
       value: summary.additions,
+      change: changes?.additions,
+      isPositive: (changes?.additions ?? 0) >= 0,
       icon: <FilePlus className="h-4 w-4" />,
       color: "chart-1",
       unit: "lines",
@@ -189,6 +197,8 @@ export function StatCards({ summary, isLoading }: StatCardsProps) {
     {
       title: "DELETIONS",
       value: summary.deletions,
+      change: changes?.deletions,
+      isPositive: (changes?.deletions ?? 0) >= 0,
       icon: <FileMinus className="h-4 w-4" />,
       color: "chart-2",
       unit: "lines",

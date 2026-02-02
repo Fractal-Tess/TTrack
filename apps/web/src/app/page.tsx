@@ -102,7 +102,11 @@ export default function DashboardPage() {
         {/* Dashboard grid */}
         <div className="space-y-4">
           {/* Stat cards row */}
-          <StatCards isLoading={isLoading} summary={metrics?.summary || null} />
+          <StatCards
+            changes={metrics?.changes || null}
+            isLoading={isLoading}
+            summary={metrics?.summary || null}
+          />
 
           {/* Main chart area */}
           <div className="grid gap-4 lg:grid-cols-3">
