@@ -48,20 +48,45 @@ function getWindowPeriod(range: string): string {
   }
 }
 
+type FilterParams = {
+  project?: string | null;
+  model?: string | null;
+  agent?: string | null;
+};
+
+function buildFilterConditions(filters: FilterParams): string {
+  const conditions: string[] = [];
+  if (filters.project) {
+    conditions.push(`r["project"] == "${filters.project}"`);
+  }
+  if (filters.model) {
+    conditions.push(`r["model"] == "${filters.model}"`);
+  }
+  if (filters.agent) {
+    conditions.push(`r["agent"] == "${filters.agent}"`);
+  }
+  return conditions.length > 0
+    ? conditions.map((c) => `|> filter(fn: (r) => ${c})`).join("\n      ")
+    : "";
+}
+
 function buildSummaryQuery(
   bucket: string,
   start: string,
-  stop: string | null
+  stop: string | null,
+  filters: FilterParams
 ): string {
   const rangeClause = stop
     ? `range(start: ${start}, stop: ${stop})`
     : `range(start: ${start})`;
+  const filterConditions = buildFilterConditions(filters);
 
   return `
     from(bucket: "${bucket}")
       |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "billable_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
+      ${filterConditions}
       |> group(columns: ["_field"])
       |> sum()
   `;
@@ -70,17 +95,20 @@ function buildSummaryQuery(
 function buildAgentQuery(
   bucket: string,
   start: string,
-  stop: string | null
+  stop: string | null,
+  filters: FilterParams
 ): string {
   const rangeClause = stop
     ? `range(start: ${start}, stop: ${stop})`
     : `range(start: ${start})`;
+  const filterConditions = buildFilterConditions(filters);
 
   return `
     from(bucket: "${bucket}")
       |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
+      ${filterConditions}
       |> group(columns: ["agent"])
       |> sum()
       |> group()
@@ -91,17 +119,20 @@ function buildAgentQuery(
 function buildModelQuery(
   bucket: string,
   start: string,
-  stop: string | null
+  stop: string | null,
+  filters: FilterParams
 ): string {
   const rangeClause = stop
     ? `range(start: ${start}, stop: ${stop})`
     : `range(start: ${start})`;
+  const filterConditions = buildFilterConditions(filters);
 
   return `
     from(bucket: "${bucket}")
       |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
+      ${filterConditions}
       |> group(columns: ["model"])
       |> sum()
       |> group()
@@ -112,17 +143,20 @@ function buildModelQuery(
 function buildProjectQuery(
   bucket: string,
   start: string,
-  stop: string | null
+  stop: string | null,
+  filters: FilterParams
 ): string {
   const rangeClause = stop
     ? `range(start: ${start}, stop: ${stop})`
     : `range(start: ${start})`;
+  const filterConditions = buildFilterConditions(filters);
 
   return `
     from(bucket: "${bucket}")
       |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens")
+      ${filterConditions}
       |> group(columns: ["project"])
       |> sum()
       |> group()
@@ -133,13 +167,29 @@ function buildProjectQuery(
 function buildTimelineQuery(
   bucket: string,
   range: string,
-  windowPeriod: string
+  windowPeriod: string,
+  filters: FilterParams,
+  startDate?: string | null,
+  endDate?: string | null
 ): string {
+  let rangeClause: string;
+  if (startDate) {
+    if (endDate) {
+      rangeClause = `range(start: ${startDate}, stop: ${endDate})`;
+    } else {
+      rangeClause = `range(start: ${startDate})`;
+    }
+  } else {
+    rangeClause = `range(start: -${range})`;
+  }
+  const filterConditions = buildFilterConditions(filters);
+
   return `
     from(bucket: "${bucket}")
-      |> range(start: -${range})
+      |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
       |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "billable_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
+      ${filterConditions}
       |> group(columns: ["_field"])
       |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: false)
   `;
@@ -273,6 +323,17 @@ function queryTimeline(fluxQuery: string): Promise<
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const range = searchParams.get("range") || "3h";
+  const project = searchParams.get("project");
+  const model = searchParams.get("model");
+  const agent = searchParams.get("agent");
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
+  const filters: FilterParams = {
+    project,
+    model,
+    agent,
+  };
 
   const windowPeriod = getWindowPeriod(range);
   const { value, unit } = parseRange(range);
@@ -283,21 +344,41 @@ export async function GET(request: NextRequest) {
   const currentSummaryQuery = buildSummaryQuery(
     config.bucket,
     `-${range}`,
-    null
+    null,
+    filters
   );
-  const currentAgentQuery = buildAgentQuery(config.bucket, `-${range}`, null);
-  const currentModelQuery = buildModelQuery(config.bucket, `-${range}`, null);
+  const currentAgentQuery = buildAgentQuery(
+    config.bucket,
+    `-${range}`,
+    null,
+    filters
+  );
+  const currentModelQuery = buildModelQuery(
+    config.bucket,
+    `-${range}`,
+    null,
+    filters
+  );
   const currentProjectQuery = buildProjectQuery(
     config.bucket,
     `-${range}`,
-    null
+    null,
+    filters
   );
-  const timelineQuery = buildTimelineQuery(config.bucket, range, windowPeriod);
+  const timelineQuery = buildTimelineQuery(
+    config.bucket,
+    range,
+    windowPeriod,
+    filters,
+    startDate,
+    endDate
+  );
 
   const previousSummaryQuery = buildSummaryQuery(
     config.bucket,
     previousStart,
-    previousStop
+    previousStop,
+    filters
   );
 
   const [
