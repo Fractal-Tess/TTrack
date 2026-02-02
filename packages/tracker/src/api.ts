@@ -41,6 +41,9 @@ export function trackData(
     data.cacheReadTokens +
     data.cacheWriteTokens;
 
+  const billableTokens =
+    data.inputTokens + data.outputTokens + data.reasoningTokens;
+
   const point = new Point("token_usage")
     .tag("agent", data.agentName)
     .tag("model", data.model)
@@ -48,6 +51,7 @@ export function trackData(
     .floatField("input_tokens", data.inputTokens)
     .floatField("output_tokens", data.outputTokens)
     .floatField("total_tokens", totalTokens)
+    .floatField("billable_tokens", billableTokens)
     .floatField("reasoning_tokens", data.reasoningTokens)
     .floatField("cache_read_tokens", data.cacheReadTokens)
     .floatField("cache_write_tokens", data.cacheWriteTokens)
