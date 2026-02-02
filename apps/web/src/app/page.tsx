@@ -83,7 +83,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Time range selector */}
               <div className="flex border-2 border-border">
                 {(Object.keys(rangeLabels) as MetricsRange[]).map((key) => (
@@ -101,6 +101,16 @@ export default function DashboardPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Filters */}
+              <FilterBar
+                agents={metrics?.agents || null}
+                filters={filters}
+                isLoading={isLoading}
+                models={metrics?.models || null}
+                onFiltersChange={setFilters}
+                projects={metrics?.projects || null}
+              />
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -121,18 +131,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
-
-        {/* Filters */}
-        <div className="mb-6">
-          <FilterBar
-            agents={metrics?.agents || null}
-            filters={filters}
-            isLoading={isLoading}
-            models={metrics?.models || null}
-            onFiltersChange={setFilters}
-            projects={metrics?.projects || null}
-          />
-        </div>
 
         {/* Dashboard grid */}
         <div className="space-y-4">
