@@ -33,6 +33,10 @@ const chartConfig = {
     label: "Billable",
     color: "var(--chart-4)",
   },
+  cache_read_tokens: {
+    label: "Cached",
+    color: "var(--chart-5)",
+  },
 } satisfies ChartConfig;
 
 type TimelineChartProps = {
@@ -59,6 +63,7 @@ export function TimelineChart({
       input_tokens: item.input_tokens || 0,
       output_tokens: item.output_tokens || 0,
       billable_tokens: item.billable_tokens || 0,
+      cache_read_tokens: item.cache_read_tokens || 0,
     }));
   }, [metrics?.timeline]);
 
@@ -78,6 +83,10 @@ export function TimelineChart({
       ),
       billable_tokens: formattedData.reduce(
         (acc, curr) => acc + curr.billable_tokens,
+        0
+      ),
+      cache_read_tokens: formattedData.reduce(
+        (acc, curr) => acc + curr.cache_read_tokens,
         0
       ),
     }),
@@ -139,6 +148,7 @@ export function TimelineChart({
             [
               "total_tokens",
               "billable_tokens",
+              "cache_read_tokens",
               "input_tokens",
               "output_tokens",
             ] as const
