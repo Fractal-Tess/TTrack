@@ -15,6 +15,14 @@ export type MetricsRange =
   | "90d"
   | "365d";
 
+export type FilterParams = {
+  project?: string | null;
+  model?: string | null;
+  agent?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+};
+
 export type TokenSummary = {
   total: number;
   input: number;
@@ -76,9 +84,35 @@ const fetcher = async (url: string): Promise<TokenMetrics> => {
   return response.json();
 };
 
-export function useTokenMetrics(range: MetricsRange = "3h") {
+function buildQueryString(range: MetricsRange, filters: FilterParams): string {
+  const params = new URLSearchParams({ range });
+
+  if (filters.project) {
+    params.set("project", filters.project);
+  }
+  if (filters.model) {
+    params.set("model", filters.model);
+  }
+  if (filters.agent) {
+    params.set("agent", filters.agent);
+  }
+  if (filters.startDate) {
+    params.set("startDate", filters.startDate);
+  }
+  if (filters.endDate) {
+    params.set("endDate", filters.endDate);
+  }
+
+  return params.toString();
+}
+
+export function useTokenMetrics(
+  range: MetricsRange = "3h",
+  filters: FilterParams = {}
+) {
+  const queryString = buildQueryString(range, filters);
   const { data, error, mutate, isLoading } = useSWR<TokenMetrics>(
-    `/api/metrics?range=${range}`,
+    `/api/metrics?${queryString}`,
     fetcher,
     {
       revalidateOnFocus: false,
