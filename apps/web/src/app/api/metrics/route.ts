@@ -61,7 +61,7 @@ function buildSummaryQuery(
     from(bucket: "${bucket}")
       |> ${rangeClause}
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
-      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
+      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "billable_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> sum()
   `;
@@ -139,7 +139,7 @@ function buildTimelineQuery(
     from(bucket: "${bucket}")
       |> range(start: -${range})
       |> filter(fn: (r) => r["_measurement"] == "token_usage")
-      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
+      |> filter(fn: (r) => r["_field"] == "total_tokens" or r["_field"] == "input_tokens" or r["_field"] == "output_tokens" or r["_field"] == "reasoning_tokens" or r["_field"] == "cache_read_tokens" or r["_field"] == "cache_write_tokens" or r["_field"] == "billable_tokens" or r["_field"] == "additions" or r["_field"] == "deletions" or r["_field"] == "files_changed")
       |> group(columns: ["_field"])
       |> aggregateWindow(every: ${windowPeriod}, fn: sum, createEmpty: false)
   `;
@@ -152,6 +152,7 @@ type SummaryData = {
   reasoning: number;
   cacheRead: number;
   cacheWrite: number;
+  billable: number;
   additions: number;
   deletions: number;
   filesChanged: number;
@@ -165,6 +166,7 @@ function createEmptySummary(): SummaryData {
     reasoning: 0,
     cacheRead: 0,
     cacheWrite: 0,
+    billable: 0,
     additions: 0,
     deletions: 0,
     filesChanged: 0,
@@ -187,6 +189,7 @@ function querySummary(fluxQuery: string): Promise<SummaryData> {
     reasoning_tokens: "reasoning",
     cache_read_tokens: "cacheRead",
     cache_write_tokens: "cacheWrite",
+    billable_tokens: "billable",
     additions: "additions",
     deletions: "deletions",
     files_changed: "filesChanged",
