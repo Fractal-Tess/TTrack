@@ -10,12 +10,20 @@ import { RefreshCw, Terminal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AgentRadarChart } from "@/components/dashboard/agent-radar-chart";
 import { BreakdownChart } from "@/components/dashboard/breakdown-chart";
+import {
+  type ActiveFilters,
+  FilterBar,
+} from "@/components/dashboard/filter-bar";
 import { ModelsChart } from "@/components/dashboard/models-chart";
 import { ProjectsChart } from "@/components/dashboard/projects-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { TimelineChart } from "@/components/dashboard/timeline-chart";
-import { type MetricsRange, useTokenMetrics } from "@/hooks/use-token-metrics";
+import {
+  type FilterParams,
+  type MetricsRange,
+  useTokenMetrics,
+} from "@/hooks/use-token-metrics";
 
 const rangeLabels: Record<MetricsRange, string> = {
   "5m": "5M",
@@ -33,7 +41,22 @@ const rangeLabels: Record<MetricsRange, string> = {
 
 export default function DashboardPage() {
   const [range, setRange] = useState<MetricsRange>("3h");
-  const { metrics, isLoading, refresh } = useTokenMetrics(range);
+  const [filters, setFilters] = useState<ActiveFilters>({
+    project: null,
+    model: null,
+    agent: null,
+    dateRange: null,
+  });
+  const filterParams: FilterParams = {
+    project: filters.project,
+    model: filters.model,
+    agent: filters.agent,
+    startDate: filters.dateRange?.from
+      ? filters.dateRange.from.toISOString()
+      : null,
+    endDate: filters.dateRange?.to ? filters.dateRange.to.toISOString() : null,
+  };
+  const { metrics, isLoading, refresh } = useTokenMetrics(range, filterParams);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -98,6 +121,18 @@ export default function DashboardPage() {
             </div>
           </div>
         </header>
+
+        {/* Filters */}
+        <div className="mb-6">
+          <FilterBar
+            agents={metrics?.agents || null}
+            filters={filters}
+            isLoading={isLoading}
+            models={metrics?.models || null}
+            onFiltersChange={setFilters}
+            projects={metrics?.projects || null}
+          />
+        </div>
 
         {/* Dashboard grid */}
         <div className="space-y-4">
