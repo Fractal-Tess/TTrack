@@ -265,8 +265,8 @@ function DateRangePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full z-50 mt-1 border-2 border-border bg-card shadow-lg">
-          <div className="p-3">
+        <div className="absolute top-full z-50 mt-1 w-[340px] border-2 border-border bg-card shadow-lg">
+          <div className="p-4">
             <div className="mb-3 flex items-center justify-between">
               <button
                 className="p-1 hover:bg-muted"
@@ -310,10 +310,10 @@ function DateRangePicker({
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-0">
+            <div className="grid grid-cols-7 gap-1">
               {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
                 <div
-                  className="flex h-8 w-8 items-center justify-center font-mono text-[10px] text-muted-foreground"
+                  className="flex h-10 w-10 items-center justify-center font-mono text-[11px] text-muted-foreground"
                   key={day}
                 >
                   {day}
@@ -321,7 +321,7 @@ function DateRangePicker({
               ))}
               {days.map((day) => {
                 if (!day.date) {
-                  return <div className="h-8 w-8" key="empty" />;
+                  return <div className="h-10 w-10" key="empty" />;
                 }
                 const dateKey = day.date.toISOString();
                 let buttonClass: string;
@@ -335,9 +335,9 @@ function DateRangePicker({
                   buttonClass = "text-foreground hover:bg-muted";
                 }
                 return (
-                  <div className="h-8 w-8" key={dateKey}>
+                  <div className="h-10 w-10" key={dateKey}>
                     <button
-                      className={`flex h-full w-full items-center justify-center font-mono text-xs transition-colors ${buttonClass}`}
+                      className={`flex h-full w-full items-center justify-center rounded-sm font-mono text-sm transition-colors ${buttonClass}`}
                       onClick={() => handleDateClick(day.date as Date)}
                       type="button"
                     >
