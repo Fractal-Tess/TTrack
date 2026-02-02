@@ -29,6 +29,10 @@ const chartConfig = {
     label: "Output",
     color: "var(--chart-3)",
   },
+  billable_tokens: {
+    label: "Billable",
+    color: "var(--chart-4)",
+  },
 } satisfies ChartConfig;
 
 type TimelineChartProps = {
@@ -54,6 +58,7 @@ export function TimelineChart({
       total_tokens: item.total_tokens || 0,
       input_tokens: item.input_tokens || 0,
       output_tokens: item.output_tokens || 0,
+      billable_tokens: item.billable_tokens || 0,
     }));
   }, [metrics?.timeline]);
 
@@ -69,6 +74,10 @@ export function TimelineChart({
       ),
       output_tokens: formattedData.reduce(
         (acc, curr) => acc + curr.output_tokens,
+        0
+      ),
+      billable_tokens: formattedData.reduce(
+        (acc, curr) => acc + curr.billable_tokens,
         0
       ),
     }),
@@ -126,24 +135,29 @@ export function TimelineChart({
           </p>
         </div>
         <div className="flex">
-          {(["total_tokens", "input_tokens", "output_tokens"] as const).map(
-            (key) => (
-              <button
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-border border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
-                data-active={activeChart === key}
-                key={key}
-                onClick={() => setActiveChart(key)}
-                type="button"
-              >
-                <span className="font-mono text-muted-foreground text-xs uppercase">
-                  {chartConfig[key].label}
-                </span>
-                <span className="font-bold font-mono text-lg leading-none sm:text-2xl">
-                  {totals[key].toLocaleString()}
-                </span>
-              </button>
-            )
-          )}
+          {(
+            [
+              "total_tokens",
+              "billable_tokens",
+              "input_tokens",
+              "output_tokens",
+            ] as const
+          ).map((key) => (
+            <button
+              className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-border border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
+              data-active={activeChart === key}
+              key={key}
+              onClick={() => setActiveChart(key)}
+              type="button"
+            >
+              <span className="font-mono text-muted-foreground text-xs uppercase">
+                {chartConfig[key].label}
+              </span>
+              <span className="font-bold font-mono text-lg leading-none sm:text-2xl">
+                {totals[key].toLocaleString()}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 

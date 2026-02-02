@@ -22,6 +22,7 @@ export type TokenSummary = {
   reasoning: number;
   cacheRead: number;
   cacheWrite: number;
+  billable: number;
   additions: number;
   deletions: number;
   filesChanged: number;
@@ -34,6 +35,7 @@ export type TokenSummaryChanges = {
   reasoning: number;
   cacheRead: number;
   cacheWrite: number;
+  billable: number;
   additions: number;
   deletions: number;
   filesChanged: number;
@@ -56,6 +58,7 @@ export type TokenMetrics = {
     total_tokens?: number;
     input_tokens?: number;
     output_tokens?: number;
+    billable_tokens?: number;
     reasoning_tokens?: number;
     cache_read_tokens?: number;
     cache_write_tokens?: number;
