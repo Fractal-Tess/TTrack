@@ -101,9 +101,9 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
             </div>
             <Bot className="h-4 w-4 text-[var(--chart-4)]" />
           </div>
-          <div className="p-4">
+          <div className="overflow-visible p-4">
             <ChartContainer
-              className="mx-auto aspect-square h-[250px]"
+              className="mx-auto aspect-square h-[200px] overflow-visible"
               config={chartConfig}
             >
               <RadarChart data={formattedData}>

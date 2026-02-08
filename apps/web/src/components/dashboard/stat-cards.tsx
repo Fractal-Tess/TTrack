@@ -10,6 +10,7 @@ import {
   ArrowDown,
   ArrowUp,
   Cpu,
+  Database,
   FileCode,
   FileMinus,
   FilePlus,
@@ -116,7 +117,7 @@ export function StatCards({ summary, changes, isLoading }: StatCardsProps) {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             className="relative border-2 border-border bg-card p-4"
             key={i}
@@ -202,6 +203,15 @@ export function StatCards({ summary, changes, isLoading }: StatCardsProps) {
       icon: <FileMinus className="h-4 w-4" />,
       color: "chart-2",
       unit: "lines",
+    },
+    {
+      title: "CACHE",
+      value: summary.cacheRead,
+      change: changes?.cacheRead,
+      isPositive: (changes?.cacheRead ?? 0) >= 0,
+      icon: <Database className="h-4 w-4" />,
+      color: "chart-3",
+      unit: "tokens",
     },
   ];
 

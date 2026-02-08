@@ -9,14 +9,12 @@ import {
 import { RefreshCw, Terminal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AgentRadarChart } from "@/components/dashboard/agent-radar-chart";
-import { BreakdownChart } from "@/components/dashboard/breakdown-chart";
 import {
   type ActiveFilters,
   FilterBar,
 } from "@/components/dashboard/filter-bar";
 import { ModelsChart } from "@/components/dashboard/models-chart";
 import { ProjectsChart } from "@/components/dashboard/projects-chart";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { TimelineChart } from "@/components/dashboard/timeline-chart";
 import {
@@ -142,24 +140,11 @@ export default function DashboardPage() {
           />
 
           {/* Main chart area */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <TimelineChart
-                isLoading={isLoading}
-                metrics={metrics || null}
-                range={range}
-                rangeLabel={rangeLabels[range]}
-              />
-            </div>
-            <div>
-              <RecentActivity isLoading={isLoading} metrics={metrics || null} />
-            </div>
-          </div>
-
-          {/* Breakdown section */}
-          <BreakdownChart
+          <TimelineChart
             isLoading={isLoading}
-            summary={metrics?.summary || null}
+            metrics={metrics || null}
+            range={range}
+            rangeLabel={rangeLabels[range]}
           />
 
           {/* Bottom charts grid */}
