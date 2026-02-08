@@ -59,14 +59,22 @@ export function TimelineChart({
     if (!metrics?.timeline) {
       return [];
     }
-    return metrics.timeline.map((item) => ({
-      time: item.time,
-      total_tokens: item.total_tokens || 0,
-      input_tokens: item.input_tokens || 0,
-      output_tokens: item.output_tokens || 0,
-      billable_tokens: item.billable_tokens || 0,
-      cache_read_tokens: item.cache_read_tokens || 0,
-    }));
+    return metrics.timeline
+      .filter((item) => {
+        if (!item.time) {
+          return false;
+        }
+        const date = new Date(item.time);
+        return !Number.isNaN(date.getTime());
+      })
+      .map((item) => ({
+        time: item.time,
+        total_tokens: item.total_tokens || 0,
+        input_tokens: item.input_tokens || 0,
+        output_tokens: item.output_tokens || 0,
+        billable_tokens: item.billable_tokens || 0,
+        cache_read_tokens: item.cache_read_tokens || 0,
+      }));
   }, [metrics?.timeline]);
 
   const totals = useMemo(
@@ -191,7 +199,14 @@ export function TimelineChart({
               minTickGap={48}
               tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => {
+                if (!value) {
+                  return "";
+                }
                 const date = new Date(value);
+                if (Number.isNaN(date.getTime())) {
+                  return "";
+                }
+
                 const isDayRange =
                   range && ["7d", "30d", "90d", "365d"].includes(range);
 
