@@ -19,7 +19,7 @@ function logErrorToFile(error: Error): void {
     const logEntry = `[${timestamp}] InfluxDB write error: ${error.message}\n`;
     appendFileSync(ERROR_LOG_PATH, logEntry);
   } catch {
-    // biome-ignore lint: Intentionally suppress file logging errors to prevent UI disruption
+    // Intentionally empty - suppress file logging errors to prevent UI disruption
   }
 }
 

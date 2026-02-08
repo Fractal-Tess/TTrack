@@ -85,10 +85,10 @@ export default function DashboardPage() {
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Time range selector */}
-              <div className="flex border-2 border-border">
+              <div className="flex overflow-x-auto border-2 border-border">
                 {(Object.keys(rangeLabels) as MetricsRange[]).map((key) => (
                   <button
-                    className={`px-3 py-2 font-mono text-xs uppercase tracking-wider transition-colors ${
+                    className={`shrink-0 px-2 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors sm:px-3 sm:py-2 ${
                       range === key
                         ? "bg-primary text-primary-foreground"
                         : "bg-background text-muted-foreground hover:bg-secondary hover:text-foreground"

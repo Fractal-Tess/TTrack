@@ -145,7 +145,7 @@ export function TimelineChart({
             RANGE: {rangeLabel || "24H"}
           </p>
         </div>
-        <div className="flex">
+        <div className="flex overflow-x-auto">
           {(
             [
               "total_tokens",
@@ -156,16 +156,16 @@ export function TimelineChart({
             ] as const
           ).map((key) => (
             <button
-              className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-border border-t px-4 py-3 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-t-0 sm:border-l sm:px-6 sm:py-4"
+              className="relative z-30 flex flex-1 shrink-0 flex-col justify-center gap-1 border-border border-t px-2 py-2 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-t-0 sm:border-l sm:px-4 sm:py-3"
               data-active={activeChart === key}
               key={key}
               onClick={() => setActiveChart(key)}
               type="button"
             >
-              <span className="font-mono text-muted-foreground text-xs uppercase">
+              <span className="font-mono text-[10px] text-muted-foreground uppercase sm:text-xs">
                 {chartConfig[key].label}
               </span>
-              <span className="font-bold font-mono text-lg leading-none sm:text-2xl">
+              <span className="font-bold font-mono text-base leading-none sm:text-2xl">
                 {totals[key].toLocaleString()}
               </span>
             </button>
@@ -174,21 +174,21 @@ export function TimelineChart({
       </div>
 
       {/* Chart */}
-      <div className="min-h-0 flex-1 p-4">
+      <div className="min-h-0 flex-1 overflow-hidden p-2 sm:p-4">
         <ChartContainer className="h-full w-full" config={chartConfig}>
           <BarChart
             accessibilityLayer
             data={formattedData}
             margin={{
-              left: 12,
-              right: 12,
+              left: 0,
+              right: 0,
             }}
           >
             <CartesianGrid stroke="var(--border)" vertical={false} />
             <XAxis
               axisLine={false}
               dataKey="time"
-              minTickGap={32}
+              minTickGap={48}
               tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => {
                 const date = new Date(value);
