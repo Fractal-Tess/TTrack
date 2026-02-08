@@ -43,12 +43,14 @@ type TimelineChartProps = {
   metrics: TokenMetrics | null;
   isLoading?: boolean;
   rangeLabel?: string;
+  range?: string;
 };
 
 export function TimelineChart({
   metrics,
   isLoading,
   rangeLabel,
+  range,
 }: TimelineChartProps) {
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>("total_tokens");
@@ -190,6 +192,16 @@ export function TimelineChart({
               tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => {
                 const date = new Date(value);
+                const isDayRange =
+                  range && ["7d", "30d", "90d", "365d"].includes(range);
+
+                if (isDayRange) {
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
+                }
+
                 return date.toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",

@@ -147,6 +147,7 @@ export default function DashboardPage() {
               <TimelineChart
                 isLoading={isLoading}
                 metrics={metrics || null}
+                range={range}
                 rangeLabel={rangeLabels[range]}
               />
             </div>
