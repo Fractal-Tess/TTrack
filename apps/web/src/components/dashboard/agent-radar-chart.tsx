@@ -106,7 +106,12 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
               className="mx-auto aspect-square h-[200px] overflow-visible"
               config={chartConfig}
             >
-              <RadarChart data={formattedData}>
+              <RadarChart
+                cx="50%"
+                cy="50%"
+                data={formattedData}
+                outerRadius="65%"
+              >
                 <PolarGrid
                   stroke="var(--border)"
                   strokeDasharray="none"
@@ -122,6 +127,7 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
                   }}
                   tickLine={false}
                 />
+
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
