@@ -83,8 +83,8 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
 
   const formattedData = topProjects.map((project, index) => ({
     name:
-      project.name.length > 14
-        ? `${project.name.slice(0, 12)}...`
+      project.name.length > 22
+        ? `${project.name.slice(0, 20)}...`
         : project.name,
     fullName: project.name,
     value: project.value,
@@ -114,7 +114,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                 accessibilityLayer
                 data={formattedData}
                 layout="vertical"
-                margin={{ left: 8, right: 12, top: 0, bottom: 0 }}
+                margin={{ left: 40, right: 12, top: 16, bottom: 8 }}
               >
                 <XAxis
                   axisLine={false}
@@ -134,14 +134,17 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                   type="number"
                 />
                 <YAxis
+                  angle={-45}
                   axisLine={false}
-                  className="font-mono text-[8px]"
+                  className="font-mono text-[10px]"
                   dataKey="name"
+                  height={60}
+                  textAnchor="end"
                   tick={{ fill: "var(--foreground)", opacity: 0.9 }}
                   tickLine={false}
-                  tickMargin={4}
+                  tickMargin={16}
                   type="category"
-                  width={80}
+                  width={140}
                 />
                 <ChartTooltip
                   content={

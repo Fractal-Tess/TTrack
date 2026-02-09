@@ -108,7 +108,7 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                 accessibilityLayer
                 data={formattedData}
                 layout="vertical"
-                margin={{ left: 16, right: 12, top: 8, bottom: 0 }}
+                margin={{ left: 40, right: 12, top: 16, bottom: 8 }}
               >
                 <XAxis
                   axisLine={false}
@@ -128,17 +128,17 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                   type="number"
                 />
                 <YAxis
-                  angle={-35}
+                  angle={-45}
                   axisLine={false}
-                  className="font-mono text-[9px]"
+                  className="font-mono text-[10px]"
                   dataKey="name"
-                  height={40}
+                  height={60}
                   textAnchor="end"
                   tick={{ fill: "var(--foreground)", opacity: 0.9 }}
                   tickLine={false}
-                  tickMargin={8}
+                  tickMargin={16}
                   type="category"
-                  width={120}
+                  width={140}
                 />
                 <ChartTooltip
                   content={
