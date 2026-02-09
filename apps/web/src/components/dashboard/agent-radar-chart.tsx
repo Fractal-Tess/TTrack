@@ -110,7 +110,7 @@ export function AgentRadarChart({ agents, isLoading }: RadarChartProps) {
                 cx="50%"
                 cy="50%"
                 data={formattedData}
-                outerRadius="65%"
+                outerRadius="55%"
               >
                 <PolarGrid
                   stroke="var(--border)"
