@@ -79,7 +79,7 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
   const totalValue = topModels.reduce((sum, model) => sum + model.value, 0);
 
   const formattedData = topModels.map((model, index) => ({
-    name: model.name.length > 14 ? `${model.name.slice(0, 12)}...` : model.name,
+    name: model.name.length > 22 ? `${model.name.slice(0, 20)}...` : model.name,
     fullName: model.name,
     value: model.value,
     percentage:
@@ -108,7 +108,7 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                 accessibilityLayer
                 data={formattedData}
                 layout="vertical"
-                margin={{ left: 8, right: 12, top: 0, bottom: 0 }}
+                margin={{ left: 16, right: 12, top: 8, bottom: 0 }}
               >
                 <XAxis
                   axisLine={false}
@@ -128,14 +128,17 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                   type="number"
                 />
                 <YAxis
+                  angle={-35}
                   axisLine={false}
-                  className="font-mono text-[8px]"
+                  className="font-mono text-[9px]"
                   dataKey="name"
+                  height={40}
+                  textAnchor="end"
                   tick={{ fill: "var(--foreground)", opacity: 0.9 }}
                   tickLine={false}
-                  tickMargin={4}
+                  tickMargin={8}
                   type="category"
-                  width={80}
+                  width={120}
                 />
                 <ChartTooltip
                   content={
