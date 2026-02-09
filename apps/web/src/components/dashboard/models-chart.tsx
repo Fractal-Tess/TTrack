@@ -75,7 +75,7 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
     );
   }
 
-  const topModels = models.slice(0, 5);
+  const topModels = models.slice(0, 8);
   const totalValue = topModels.reduce((sum, model) => sum + model.value, 0);
 
   const formattedData = topModels.map((model, index) => ({

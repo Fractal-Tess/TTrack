@@ -75,7 +75,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
     );
   }
 
-  const topProjects = projects.slice(0, 5);
+  const topProjects = projects.slice(0, 8);
   const totalValue = topProjects.reduce(
     (sum, project) => sum + project.value,
     0
