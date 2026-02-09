@@ -114,7 +114,7 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                 accessibilityLayer
                 data={formattedData}
                 layout="vertical"
-                margin={{ left: 40, right: 12, top: 16, bottom: 8 }}
+                margin={{ left: 60, right: 16, top: 24, bottom: 16 }}
               >
                 <XAxis
                   axisLine={false}
@@ -136,15 +136,15 @@ export function ProjectsChart({ projects, isLoading }: ProjectsChartProps) {
                 <YAxis
                   angle={-45}
                   axisLine={false}
-                  className="font-mono text-[10px]"
+                  className="font-mono text-[11px]"
                   dataKey="name"
-                  height={60}
+                  height={80}
                   textAnchor="end"
                   tick={{ fill: "var(--foreground)", opacity: 0.9 }}
                   tickLine={false}
-                  tickMargin={16}
+                  tickMargin={20}
                   type="category"
-                  width={140}
+                  width={160}
                 />
                 <ChartTooltip
                   content={
