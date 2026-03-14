@@ -1,10 +1,9 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import type { Plugin } from "@opencode-ai/plugin";
 import { TokenTracker, type TrackData } from "@workspace/tracker";
-import type { Result as NeverthrowResult } from "neverthrow";
-import { err, ok, type Result } from "neverthrow";
+import { Result, ResultAsync } from "neverthrow";
 
 type TTrackConfig = {
   influxdb: {
@@ -85,67 +84,54 @@ const DEFAULT_CONFIG: TTrackConfig = {
   },
 };
 
+const TTRACK_CONFIG_PATH = join(
+  homedir(),
+  ".config",
+  "opencode",
+  "ttrack.json"
+);
+
 const processedCallIds = new Set<string>();
 const fileChanges = new Map<string, FileChangeInfo>();
 
-async function loadConfig(): Promise<TTrackConfig> {
-  try {
-    const configPath = join(homedir(), ".config", "opencode", "ttrack.json");
-    const configData = await readFile(configPath, "utf-8");
-    const parsed = JSON.parse(configData) as Partial<TTrackConfig>;
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
 
-    return {
-      influxdb: {
-        url: parsed.influxdb?.url ?? DEFAULT_CONFIG.influxdb.url,
-        token: parsed.influxdb?.token ?? DEFAULT_CONFIG.influxdb.token,
-        org: parsed.influxdb?.org ?? DEFAULT_CONFIG.influxdb.org,
-        bucket: parsed.influxdb?.bucket ?? DEFAULT_CONFIG.influxdb.bucket,
-      },
-    };
-  } catch {
+function normalizeConfig(parsed: Partial<TTrackConfig>): TTrackConfig {
+  return {
+    influxdb: {
+      url: parsed.influxdb?.url ?? DEFAULT_CONFIG.influxdb.url,
+      token: parsed.influxdb?.token ?? DEFAULT_CONFIG.influxdb.token,
+      org: parsed.influxdb?.org ?? DEFAULT_CONFIG.influxdb.org,
+      bucket: parsed.influxdb?.bucket ?? DEFAULT_CONFIG.influxdb.bucket,
+    },
+  };
+}
+
+function parseConfig(configData: string): Result<TTrackConfig, Error> {
+  return Result.fromThrowable(
+    () => JSON.parse(configData) as Partial<TTrackConfig>,
+    toError
+  )().map(normalizeConfig);
+}
+
+async function loadConfig(): Promise<TTrackConfig> {
+  const configDataResult = await ResultAsync.fromPromise(
+    readFile(TTRACK_CONFIG_PATH, "utf-8"),
+    toError
+  );
+
+  if (configDataResult.isErr()) {
     return DEFAULT_CONFIG;
   }
+
+  const parsedConfigResult = parseConfig(configDataResult.value);
+  return parsedConfigResult.isOk() ? parsedConfigResult.value : DEFAULT_CONFIG;
 }
 
-function getLogFilePath(): string {
-  try {
-    const cwd = process.cwd();
-    const opencodeDir = join(cwd, ".opencode");
-    return join(opencodeDir, "TTrack", "error.log");
-  } catch {
-    return join(".opencode", "TTrack", "error.log");
-  }
-}
-
-async function writeToLogFile(message: string, error?: unknown): Promise<void> {
-  try {
-    const logFile = getLogFilePath();
-    await mkdir(dirname(logFile), { recursive: true });
-
-    const timestamp = new Date().toISOString();
-    const errorDetails = error
-      ? ` - ${error instanceof Error ? error.stack : String(error)}`
-      : "";
-    const logEntry = `[${timestamp}] ${message}${errorDetails}\n`;
-    await appendFile(logFile, logEntry);
-  } catch {
-    return;
-  }
-}
-
-function getModelName(
-  providerID?: string,
-  modelID?: string
-): Result<string, Error> {
-  try {
-    const provider = providerID || "unknown";
-    const model = modelID || "unknown";
-    return ok(`${provider}/${model}`);
-  } catch (error) {
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    writeToLogFile("[TokenTracker] Error constructing model name:", errorObj);
-    return err(errorObj);
-  }
+function getModelName(providerID?: string, modelID?: string): string {
+  return `${providerID ?? "unknown"}/${modelID ?? "unknown"}`;
 }
 
 function isMessagePartUpdatedEvent(event: {
@@ -329,19 +315,17 @@ function clearFileChanges(): void {
   fileChanges.clear();
 }
 
-function processMessage(
+async function processMessage(
   tracker: TokenTracker,
   message: MessageInfo,
   projectName: string
-): void {
+): Promise<void> {
   if (!message?.tokens || typeof message.tokens !== "object") {
     return;
   }
 
   const tokens = message.tokens;
-  const modelResult = getModelName(message.providerID, message.modelID);
-
-  const model = modelResult.isOk() ? modelResult.value : "unknown/unknown";
+  const model = getModelName(message.providerID, message.modelID);
   const agentName = message.agent || "unknown";
 
   const inputTokens = Number(tokens.input ?? 0);
@@ -366,11 +350,10 @@ function processMessage(
     filesChanged: fileChangeSummary.filesChanged,
   };
 
-  tracker.track(trackData).then((result: NeverthrowResult<void, Error>) => {
-    if (result.isErr()) {
-      writeToLogFile("[TokenTracker] Track error:", result.error);
-    }
-  });
+  await tracker.track(trackData).match(
+    () => undefined,
+    () => undefined
+  );
 
   clearFileChanges();
 }
@@ -426,61 +409,15 @@ function processToolExecution(
   }
 }
 
-export const tokenTrackerPlugin: Plugin = async ({ project, client }) => {
+export const tokenTrackerPlugin: Plugin = async ({ project }) => {
   const projectName = getProjectName(project.worktree);
 
   const config = await loadConfig();
 
   const tracker = new TokenTracker(config.influxdb);
 
-  let hasShownConnectionError = false;
-
-  tracker
-    .track({
-      projectName: "test",
-      agentName: "test",
-      model: "test",
-      inputTokens: 0,
-      outputTokens: 0,
-      reasoningTokens: 0,
-      cacheReadTokens: 0,
-      cacheWriteTokens: 0,
-      additions: 0,
-      deletions: 0,
-      filesChanged: 0,
-    })
-    .then((result: NeverthrowResult<void, Error>) => {
-      if (result.isErr()) {
-        writeToLogFile(
-          "[TokenTracker] InfluxDB connection failed on startup",
-          result.error
-        );
-        writeToLogFile(
-          "[TokenTracker] Please check your ~/.config/opencode/ttrack.json configuration"
-        );
-        hasShownConnectionError = true;
-      }
-    });
-
   return {
     event: async ({ event }) => {
-      if (event.type === "session.created" && hasShownConnectionError) {
-        await client.tui
-          .showToast({
-            body: {
-              title: "TTrack: InfluxDB Connection Failed",
-              message:
-                "Token tracking is disabled. Please check your ~/.config/opencode/ttrack.json configuration.",
-              variant: "warning" as const,
-              duration: 10_000,
-            },
-          })
-          .catch(() => {
-            return;
-          });
-        hasShownConnectionError = false;
-      }
-
       if (
         event.type === "message.updated" &&
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -489,7 +426,7 @@ export const tokenTrackerPlugin: Plugin = async ({ project, client }) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const info = event.properties.info as MessageInfo;
 
-        processMessage(tracker, info, projectName);
+        await processMessage(tracker, info, projectName);
       }
 
       if (isMessagePartUpdatedEvent(event)) {

@@ -1,7 +1,9 @@
-import { appendFileSync } from "node:fs";
-import { join } from "node:path";
 import { InfluxDB, Point } from "@influxdata/influxdb-client";
-import { fromPromise, type ResultAsync } from "neverthrow";
+import {
+  type ResultAsync as NeverthrowResultAsync,
+  Result,
+  ResultAsync,
+} from "neverthrow";
 import type { TrackData } from "./types.js";
 
 export type InfluxDBConfig = {
@@ -11,22 +13,14 @@ export type InfluxDBConfig = {
   bucket: string;
 };
 
-const ERROR_LOG_PATH = join(process.cwd(), ".ttrack-errors.log");
-
-function logErrorToFile(error: Error): void {
-  try {
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] InfluxDB write error: ${error.message}\n`;
-    appendFileSync(ERROR_LOG_PATH, logEntry);
-  } catch {
-    // Intentionally empty - suppress file logging errors to prevent UI disruption
-  }
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
 }
 
 export function trackData(
   config: InfluxDBConfig,
   data: TrackData
-): ResultAsync<void, Error> {
+): NeverthrowResultAsync<void, Error> {
   const influxDB = new InfluxDB({
     url: config.url,
     token: config.token,
@@ -59,13 +53,17 @@ export function trackData(
     .floatField("deletions", data.deletions)
     .floatField("files_changed", data.filesChanged);
 
-  writeApi.writePoint(point);
+  const closePromiseResult = Result.fromThrowable(() => {
+    writeApi.writePoint(point);
+    return writeApi.close();
+  }, toError)();
 
-  return fromPromise(
-    writeApi.close().catch((error) => {
-      const err = error instanceof Error ? error : new Error(String(error));
-      logErrorToFile(err);
-    }),
-    (error) => (error instanceof Error ? error : new Error(String(error)))
-  );
+  if (closePromiseResult.isErr()) {
+    return ResultAsync.fromPromise(
+      Promise.reject(closePromiseResult.error),
+      toError
+    );
+  }
+
+  return ResultAsync.fromPromise(closePromiseResult.value, toError);
 }
