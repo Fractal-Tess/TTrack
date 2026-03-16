@@ -1,9 +1,7 @@
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import { InfluxDB, Point } from "@influxdata/influxdb-client";
-import {
-  type ResultAsync as NeverthrowResultAsync,
-  Result,
-  ResultAsync,
-} from "neverthrow";
+import { fromPromise, Result, type ResultAsync } from "neverthrow";
 import type { TrackData } from "./types.js";
 
 export type InfluxDBConfig = {
@@ -13,21 +11,25 @@ export type InfluxDBConfig = {
   bucket: string;
 };
 
+const ERROR_LOG_PATH = join(process.cwd(), ".ttrack-errors.log");
+
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
+}
+
+const appendErrorLog = Result.fromThrowable(appendFileSync, toError);
+
+function logErrorToFile(error: Error): void {
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] InfluxDB write error: ${error.message}\n`;
+
+  appendErrorLog(ERROR_LOG_PATH, logEntry);
 }
 
 export function trackData(
   config: InfluxDBConfig,
   data: TrackData
-): NeverthrowResultAsync<void, Error> {
-  const influxDB = new InfluxDB({
-    url: config.url,
-    token: config.token,
-  });
-
-  const writeApi = influxDB.getWriteApi(config.org, config.bucket);
-
+): ResultAsync<void, Error> {
   const totalTokens =
     data.inputTokens +
     data.outputTokens +
@@ -53,17 +55,20 @@ export function trackData(
     .floatField("deletions", data.deletions)
     .floatField("files_changed", data.filesChanged);
 
-  const closePromiseResult = Result.fromThrowable(() => {
-    writeApi.writePoint(point);
-    return writeApi.close();
-  }, toError)();
+  return fromPromise(
+    Promise.resolve().then(async () => {
+      const influxDB = new InfluxDB({
+        url: config.url,
+        token: config.token,
+      });
 
-  if (closePromiseResult.isErr()) {
-    return ResultAsync.fromPromise(
-      Promise.reject(closePromiseResult.error),
-      toError
-    );
-  }
-
-  return ResultAsync.fromPromise(closePromiseResult.value, toError);
+      const writeApi = influxDB.getWriteApi(config.org, config.bucket);
+      writeApi.writePoint(point);
+      await writeApi.close();
+    }),
+    toError
+  ).mapErr((error) => {
+    logErrorToFile(error);
+    return error;
+  });
 }

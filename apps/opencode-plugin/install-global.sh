@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # TTrack OpenCode Plugin Global Installation Script
 # This script installs the TTrack plugin globally for OpenCode
