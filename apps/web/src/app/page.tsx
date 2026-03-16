@@ -140,12 +140,14 @@ export default function DashboardPage() {
           />
 
           {/* Main chart area */}
-          <TimelineChart
-            isLoading={isLoading}
-            metrics={metrics || null}
-            range={range}
-            rangeLabel={rangeLabels[range]}
-          />
+          <div className="h-64">
+            <TimelineChart
+              isLoading={isLoading}
+              metrics={metrics || null}
+              range={range}
+              rangeLabel={rangeLabels[range]}
+            />
+          </div>
 
           {/* Bottom charts grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
