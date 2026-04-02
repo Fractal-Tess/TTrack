@@ -1,6 +1,7 @@
 <div align="center">
+  <img src="./assets/logo.png" alt="TTrack logo" width="96">
   <h1>TTrack</h1>
-  <img src="./splash.png" alt="TTrack dashboard splash" width="1200">
+  <img src="./assets/screenshot.png" alt="TTrack dashboard screenshot" width="1200">
   <p><strong>Token Tracker</strong> - A system for monitoring and analyzing AI token usage across your projects</p>
 </div>
 
