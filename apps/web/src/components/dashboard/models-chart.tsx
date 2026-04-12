@@ -114,15 +114,7 @@ export function ModelsChart({ models, isLoading }: ModelsChartProps) {
                   axisLine={false}
                   className="font-mono text-[10px]"
                   tick={{ fill: "var(--foreground)", opacity: 0.8 }}
-                  tickFormatter={(value) => {
-                    if (value >= 1_000_000) {
-                      return `${(value / 1_000_000).toFixed(1)}M`;
-                    }
-                    if (value >= 1000) {
-                      return `${(value / 1000).toFixed(0)}K`;
-                    }
-                    return value;
-                  }}
+                  tickFormatter={(value) => formatNumber(Number(value))}
                   tickLine={false}
                   tickMargin={8}
                   type="number"

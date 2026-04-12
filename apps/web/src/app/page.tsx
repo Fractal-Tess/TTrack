@@ -36,7 +36,6 @@ const rangeLabels: Record<MetricsRange, string> = {
   "90d": "90D",
   "365d": "365D",
 };
-
 export default function DashboardPage() {
   const [range, setRange] = useState<MetricsRange>("3h");
   const [filters, setFilters] = useState<ActiveFilters>({

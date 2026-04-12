@@ -1,0 +1,37 @@
+{
+  "name": "codex-ttrack",
+  "version": "1.0.0",
+  "description": "Track OpenAI Codex CLI token usage to InfluxDB via TTrack",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "codex-ttrack": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "codex",
+    "plugin",
+    "token-tracking",
+    "influxdb",
+    "ttrack"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
+    "@workspace/tracker": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
