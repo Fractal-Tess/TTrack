@@ -1,7 +1,9 @@
-import { appendFileSync } from "node:fs";
-import { join } from "node:path";
-import { InfluxDB, Point } from "@influxdata/influxdb-client";
-import { fromPromise, Result, type ResultAsync } from "neverthrow";
+import {
+  InfluxDB,
+  Point,
+  type WriteOptions,
+} from "@influxdata/influxdb-client";
+import { fromPromise, type ResultAsync } from "neverthrow";
 import type { TrackData } from "./types.js";
 
 export type InfluxDBConfig = {
@@ -9,27 +11,25 @@ export type InfluxDBConfig = {
   token: string;
   org: string;
   bucket: string;
+  silent?: boolean;
 };
-
-const ERROR_LOG_PATH = join(process.cwd(), ".ttrack-errors.log");
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
 
-const appendErrorLog = Result.fromThrowable(appendFileSync, toError);
+function createWriteOptions(config: InfluxDBConfig): Partial<WriteOptions> {
+  if (!config.silent) {
+    return {};
+  }
 
-function logErrorToFile(error: Error): void {
-  const timestamp = new Date().toISOString();
-  const logEntry = `[${timestamp}] InfluxDB write error: ${error.message}\n`;
-
-  appendErrorLog(ERROR_LOG_PATH, logEntry);
+  return {
+    writeFailed: (error) => Promise.reject(error),
+    writeRetrySkipped: () => undefined,
+  };
 }
 
-export function trackData(
-  config: InfluxDBConfig,
-  data: TrackData
-): ResultAsync<void, Error> {
+function createPoint(data: TrackData): Point {
   const totalTokens =
     data.inputTokens +
     data.outputTokens +
@@ -40,7 +40,7 @@ export function trackData(
   const billableTokens =
     data.inputTokens + data.outputTokens + data.reasoningTokens;
 
-  const point = new Point("token_usage")
+  return new Point("token_usage")
     .tag("agent", data.agentName)
     .tag("model", data.model)
     .tag("project", data.projectName)
@@ -54,21 +54,39 @@ export function trackData(
     .floatField("additions", data.additions)
     .floatField("deletions", data.deletions)
     .floatField("files_changed", data.filesChanged);
+}
 
+export function trackDataBatch(
+  config: InfluxDBConfig,
+  data: TrackData[]
+): ResultAsync<void, Error> {
   return fromPromise(
     Promise.resolve().then(async () => {
+      if (data.length === 0) {
+        return;
+      }
+
       const influxDB = new InfluxDB({
         url: config.url,
         token: config.token,
       });
 
-      const writeApi = influxDB.getWriteApi(config.org, config.bucket);
-      writeApi.writePoint(point);
+      const writeApi = influxDB.getWriteApi(
+        config.org,
+        config.bucket,
+        undefined,
+        createWriteOptions(config)
+      );
+      writeApi.writePoints(data.map(createPoint));
       await writeApi.close();
     }),
     toError
-  ).mapErr((error) => {
-    logErrorToFile(error);
-    return error;
-  });
+  );
+}
+
+export function trackData(
+  config: InfluxDBConfig,
+  data: TrackData
+): ResultAsync<void, Error> {
+  return trackDataBatch(config, [data]);
 }

@@ -11,6 +11,7 @@ type TTrackConfig = {
     token: string;
     org: string;
     bucket: string;
+    silent?: boolean;
   };
 };
 
@@ -105,6 +106,7 @@ function normalizeConfig(parsed: Partial<TTrackConfig>): TTrackConfig {
       token: parsed.influxdb?.token ?? DEFAULT_CONFIG.influxdb.token,
       org: parsed.influxdb?.org ?? DEFAULT_CONFIG.influxdb.org,
       bucket: parsed.influxdb?.bucket ?? DEFAULT_CONFIG.influxdb.bucket,
+      silent: parsed.influxdb?.silent ?? true,
     },
   };
 }
@@ -414,7 +416,10 @@ export const tokenTrackerPlugin: Plugin = async ({ project }) => {
 
   const config = await loadConfig();
 
-  const tracker = new TokenTracker(config.influxdb);
+  const tracker = new TokenTracker({
+    ...config.influxdb,
+    silent: true,
+  });
 
   return {
     event: async ({ event }) => {
