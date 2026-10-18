@@ -37,3 +37,5 @@ npm-debug.log*
 
 # Direnv
 .direnv
+# README image captures (recaptured from the running app)
+assets/screenshots/source/shots/

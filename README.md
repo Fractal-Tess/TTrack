@@ -1,146 +1,73 @@
-<div align="center">
-  <img src="./assets/logo.png" alt="TTrack logo" width="96">
-  <h1>TTrack</h1>
-  <img src="./assets/screenshot.png" alt="TTrack dashboard screenshot" width="1200">
-  <p><strong>Token Tracker</strong> - A system for monitoring and analyzing AI token usage across your projects</p>
-</div>
+<p align="center">
+  <img src="assets/logo.svg" alt="TTrack" width="160" />
+</p>
 
-## What is TTrack?
+<p align="center">
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js" alt="Next.js 16" /></a>
+  <a href="https://docs.influxdata.com/influxdb/v2/"><img src="https://img.shields.io/badge/InfluxDB-2.x-00DBBC?logo=influxdb&logoColor=white" alt="Needs InfluxDB 2.x" /></a>
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-1.3-000000?logo=bun" alt="Bun 1.3" /></a>
+</p>
 
-TTrack helps you understand how much you are spending on AI by tracking token consumption from AI assistant interactions. It captures input, output, reasoning, and cache tokens for each message, then visualizes this data in an easy-to-read dashboard.
+<h1 align="center">TTrack</h1>
 
-TTrack currently supports:
+<p align="center">
+  <img src="assets/screenshots/hero.webp" alt="Two dashboard windows: thirty days of token totals, a daily timeline and breakdowns by model, project and agent, and in front a seven-day view with the project filter open" width="100%" />
+</p>
 
-- **OpenCode** via an in-process plugin
-- **OpenAI Codex CLI** via a local hook-driven tracking CLI
+<p align="center">
+  A dashboard that shows where your AI coding tokens went.
+</p>
 
-## Project Structure
+TTrack records every assistant turn from OpenCode and the Codex CLI into InfluxDB, then puts it on one page: input, output, reasoning and cache tokens, per project, model and agent, over any range from five minutes to a year. It is for people who run coding agents across several repositories and want to know which ones eat the budget, without opening each provider's billing page.
 
-Think of TTrack as having four main parts that work together:
+- **Collect** turns automatically, with an OpenCode plugin and a `notify` hook for Codex. Each turn also carries the lines added and removed and the files it touched.
+- **Compare** any range with the one before it, and split the totals by project, model and agent.
+- **Separate** billable tokens (input, output, reasoning) from cache reads, which are usually most of the total and cost far less.
 
-1. **Collectors** - Integrations that capture token data from supported clients like OpenCode and Codex CLI
-2. **Tracker Library** - A small package that handles sending the captured data to the tracking server
-3. **Web Dashboard** - A web interface where you can view charts and metrics about your token usage over time
-4. **UI Components** - Shared building blocks used across the project for a consistent look and feel
-
-Here is how the code is organized:
-
-```
-TTrack/
-├── apps/
-│   ├── codex-plugin/    # Codex CLI hook-based tracker
-│   └── web/             # The web dashboard you view in your browser
-├── .opencode/
-│   └── plugin/          # The OpenCode plugin that captures tokens
-├── packages/
-│   ├── tracker/         # Library for sending token data
-│   ├── ui/              # Shared user interface components
-│   └── typescript-config/  # Shared configuration files
-```
-
-## How It Works
-
-1. A supported collector captures token usage from your AI client
-2. The collector extracts token counts, cache usage, and file change metadata
-3. The tracker library sends this data to InfluxDB
-4. The web dashboard reads this data and displays it as charts and statistics
-5. You can see trends, compare time periods, and understand your usage patterns
-
-## Quick Start
-
-The fastest way to get TTrack running is with Docker Compose:
+## Quick start
 
 ```bash
-# Clone the repository
 git clone https://github.com/Fractal-Tess/TTrack.git
 cd TTrack
-
-# Start the entire stack
 docker compose up -d
 ```
 
-This will spin up:
-
-- **InfluxDB** on port 8086 (time-series database for token data)
-- **TTrack Web Dashboard** on port 3000
-
-Access the dashboard at http://localhost:3000
-
-### Manual Setup
-
-If you prefer to run components separately:
-
-1. Start InfluxDB 2.x with a bucket named `token_usage`
-2. Set environment variables:
-   - `INFLUXDB_URL` - Your InfluxDB instance URL
-   - `INFLUXDB_TOKEN` - Your InfluxDB API token
-   - `INFLUXDB_ORG` - Your InfluxDB organization
-   - `INFLUXDB_BUCKET` - The bucket name (default: token_usage)
-   - `NEXT_PUBLIC_APP_URL` - The public URL of your web dashboard
-3. Run the web app: `cd apps/web && bun run dev`
-
-## Supported Clients
-
-### OpenCode
-
-OpenCode is supported through the existing plugin integration in this repository.
-
-### Codex CLI
-
-Codex is supported through `apps/codex-plugin`, a local CLI that hooks into Codex's `notify` event and parses Codex session JSONL files after each completed turn.
-
-After setup, you use `codex` normally and TTrack syncs completed turns automatically.
-
-## Codex Setup
-
-1. Build the Codex tracker:
+This starts InfluxDB on port 8086 and the dashboard on [localhost:3000](http://localhost:3000). The dashboard stays empty until a collector sends something. To hook up OpenCode:
 
 ```bash
-bun run --cwd apps/codex-plugin build
+bun install
+bun run --cwd apps/opencode-plugin build
+apps/opencode-plugin/install-global.sh
 ```
 
-2. Install the `codex-ttrack` command.
+Then write the InfluxDB details to `~/.config/opencode/ttrack.json` and restart OpenCode:
 
-If you want a simple local install, create a wrapper in your shell path that runs:
-
-```bash
-node /absolute/path/to/TTrack/apps/codex-plugin/dist/cli.js "$@"
+```json
+{
+  "influxdb": {
+    "url": "http://localhost:8086",
+    "token": "ttrack-dev-token",
+    "org": "ttrack",
+    "bucket": "token_usage"
+  }
+}
 ```
 
-3. Configure InfluxDB credentials:
+Codex setup, manual InfluxDB setup and the environment variables are in [INSTALL.md](INSTALL.md).
 
-```bash
-codex-ttrack configure
-```
+## A closer look
 
-4. Install the Codex hook:
+<table>
+  <tr>
+    <td><img src="assets/screenshots/filters.webp" alt="Dashboard filtered to the gitadel project over seven days, showing billable tokens per hour with a tooltip on one bar" /></td>
+    <td><img src="assets/screenshots/models.webp" alt="Model filter open over the 24-hour view, listing the models used that day" /></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="assets/screenshots/breakdown.webp" alt="Thirty-day timeline above three panels: top models, tokens per project, and a radar chart of agent usage" /></td>
+  </tr>
+</table>
 
-```bash
-codex-ttrack setup
-```
+## More
 
-This writes the following to `~/.codex/config.toml`:
-
-```toml
-notify = ["codex-ttrack", "hook", "agent-turn-complete"]
-```
-
-5. Verify the setup:
-
-```bash
-codex-ttrack verify
-```
-
-6. Use Codex normally:
-
-```bash
-codex
-```
-
-After each completed turn, `codex-ttrack` will:
-
-- read the latest Codex session file from `~/.codex/sessions`
-- extract per-turn token usage
-- capture `apply_patch` file change counts
-- send the turn to InfluxDB
-- dedupe by `turn_id` to avoid double counting
+- [INSTALL.md](INSTALL.md): running the stack, the OpenCode plugin and the Codex hook
+- [CONTRIBUTING.md](CONTRIBUTING.md): repository layout, development and remaking the README images
